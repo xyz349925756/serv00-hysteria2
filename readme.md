@@ -68,8 +68,8 @@ https://www.cloudns.net/
 [xxx@s5]:<~/serv00-v2ray>$ cp deployment ~
 [xxx@s5]:<~/serv00-v2ray>$ cd 
 # 添加执行权限
-[wan3499@s5]:<~>$ chmod u+x deployment 
-[wan3499@s5]:<~>$ chmod u+x initialize_serv00 
+[xxx@s5]:<~>$ chmod u+x deployment 
+[xxx@s5]:<~>$ chmod u+x initialize_serv00 
 ```
 
 ### 初始化vps
