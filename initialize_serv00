@@ -1,0 +1,95 @@
+#!/bin/bash
+
+# Initialize SERV00 VPS Settings
+
+
+
+# website_path=~/domains/$domain_name/public_html
+
+# website and domain
+del_website(){
+    domains=$(devil www list|sed -e '/^$/d' -e '/Domain/d'|awk '$1 !~ /serv00.net/ {print $1}')
+    if [ -z $domains ]
+    then 
+        echo "The website is empty!"
+        return 0
+    else
+        for i in ${domains[@]}
+        do 
+            if [ -z "~/domains/$i" ]
+            then
+                echo "The website directory is empty!"
+                return 0
+            else
+                devil www del $i; rm -rf ~/domains/$i
+                if [ $? -eq 0 ]
+                then 
+                    echo "Delete successfully!"
+                fi
+            fi
+        done
+    fi
+}
+
+# port
+del_port(){
+    ports=$(devil port list|sed -e '/^$/d' -e '/Port/d'|awk '{print $1}')
+    ports_num=$(devil port list|sed -e '/^$/d' -e '/Port/d'|wc -l|awk '{print $1}')
+    if [ `devil port list|sed -e '/^$/d' -e '/Port/d'|awk '{print $1}'` = "No" ]
+    then
+        echo "The port is empty!"
+        return 0
+    else    
+        for i in ${ports[@]}
+        do
+            devil port del tcp $i
+        done
+    fi
+}
+
+
+# cert
+del_cert(){
+    ssls=$(devil ssl www list | sed -e '/^$/d'|awk 'NR>5 {print $1}')
+    if [ $ssls = "No" ]
+    then
+        echo "The SSL certificate directory is empty!"
+        return 0
+    else
+        for i in ${ssls[@]}
+	    do
+            devil ssl www del `devil ssl www list|sed -e '/^$/d'|awk 'NR>5 {print $6,$1}'`
+	    done
+    fi    
+}
+
+del_dir(){
+    rm -rf ~/v2ray 2> tmp.log
+    rm -rf cert 2> tmp.log
+    rm cret.txt 2> tmp.log
+    rm v2ray-freebsd-64.zip 2> tmp.log
+    rm -rf ~/domains/v2ray 2> tmp.log
+    rm nohup.out 2> tmp.log
+    rm v2ray.log 2> tmp.log
+}
+
+echo -e "\033[41;36m[Caution]:\033[0m \033[31mThis script will delete all the settings of the SERV00 server, please execute carefully！！！\033[0m"
+read -n 1 -p "Please input your choice [y/n]: " answer
+case $answer in
+   Y|y) echo
+        echo -e "Delete the domain name, website, port, certificate, website directory content, please later ..."
+        del_website
+        del_cert
+        del_port
+        del_dir
+        ;;
+   N|n) echo
+        echo "Aborted, please re-execute the script."
+        exit;;
+esac
+echo -e "\033[35m[Info]:\033[0m  The script has ended ..."
+exit
+
+#  devil ssl www add ssl_ip ssl_cert_file ssl_key_file [domain]
+#  devil ssl www add 128.204.223.98 ~/cert/cert.pem ~/cert/cert.key wan3499.0256.cloudns.ch
+
