@@ -68,6 +68,7 @@ del_dir(){
     rm -rf cert 2> tmp.log
     rm cret.txt 2> tmp.log
     rm v2ray-freebsd-64.zip 2> tmp.log
+    rm search_index.zip 2> tmp.log
     rm -rf ~/domains/v2ray 2> tmp.log
     rm nohup.out 2> tmp.log
     rm v2ray.log 2> tmp.log
