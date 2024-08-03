@@ -9,7 +9,7 @@ then
     echo "[$stime]: server is not running!" >> mail.log
     echo "[$stime]: now start server!" >> mail.log
     nohup ~/v2ray/v2ray run & disown %1
-    if [ "$c" -eq 3 ]
+    if [ $? -eq 0 ]
     then
         echo "[$stime]: start server successfully!" >> mail.log
     else

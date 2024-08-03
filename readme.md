@@ -214,3 +214,6 @@ chmod u+x smail
 
 ![image-20240803225125455](./.readme.assets/image-20240803225125455.png)
 
+> [!tip]
+>
+> s7 这台服务器太卡了。
