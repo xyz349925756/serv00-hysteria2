@@ -1,5 +1,7 @@
 #!/bin/bash
 
+email="wang@cloudb.pub"
+
 c=$(sockstat -l | awk '$1 !~ /USER/'|wc -l|awk '{print $1}')
 stime=$(date "+%Y-%m-%d %H:%M:%S")
 if [ "$c" -eq 0 ]
@@ -15,8 +17,5 @@ then
         cat v2ray.log >> mail.log
     fi
     cat mail.log | mail -s "$whoami server status" $email
+    : > mail.log
 fi
-
-
-# 邮件告警
-# echo "hello" | mail -s "title" 349925756@qq.com
