@@ -198,9 +198,19 @@ $ ssh-copy-id -i  .ssh/id_rsa.pub xxx@sx.serv00.com
 
 
 
+## 邮件告警
 
+s7 经常被杀。只能做个脚本配合 serv00 的计划任务 每小时检查一次，如果 v2ray 被杀了 就启动。并且发送邮件告警。
 
+脚本 smail 中email 变量设置成自己的 email。
 
+记得给 smail 设置权限
+
+```shell
+chmod u+x smail
+```
+
+ 
 
 
 

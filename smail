@@ -1,0 +1,22 @@
+#!/bin/bash
+
+c=$(sockstat -l | awk '$1 !~ /USER/'|wc -l|awk '{print $1}')
+stime=$(date "+%Y-%m-%d %H:%M:%S")
+if [ "$c" -eq 0 ]
+then
+    echo "[$stime]: server is not running!" >> mail.log
+    echo "[$stime]: now start server!" >> mail.log
+    nohup ~/v2ray/v2ray run & disown %1
+    if [ $? -eq 0 ]
+    then
+        echo "[$stime]: start server successfully!" >> mail.log
+    else
+        echo "[Error]:start server failed!" >> mail.log
+        cat v2ray.log >> mail.log
+    fi
+    cat mail.log | mail -s "$whoami server status" $email
+fi
+
+
+# 邮件告警
+# echo "hello" | mail -s "title" 349925756@qq.com
