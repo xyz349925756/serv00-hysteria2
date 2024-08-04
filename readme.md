@@ -2,23 +2,44 @@
 >
 > 使用本脚本部署 vless + tcp +tls , vless + ws + tls , trojan + tcp +tls 。由于中途需要使用到serv00 提供的自动更新证书服务，因此需要输入一次 ssh 密码[可以粘贴]，部署成功后  https://域名/panel.html 是单条 URL ， https://域名/sub.txt 是订阅地址。
 
+```markmap
+---
+markmap:
+  zoom: false
+  pan: false
+  height: 300px
+  backgroundColor: "#f8f8f8"
+---
+
+# 在 serv00 vps 上部署 v2ray
+## 1、开启脚本执行权限
+## 2、DNS准备
+## 3、如何使用？
+### 3.1、初始化vps
+### 3.2、部署
+#### 3.2.1、客户端 URL 获取
+##### 3.2.1.1、复制URL
+##### 3.2.1.2、使用订阅连接
+### 3.3、计划任务
+## 4、多台 serv00 VPS怎么操作？
+## 5、邮件告警
+```
 
 
 
+# 在 serv00 vps 上部署 v2ray
 
-# 前置
-
-## 开启脚本执行权限
+## 1、开启脚本执行权限
 
 ![image-20240731092717967](./.readme.assets/image-20240731092717967.png)
 
 
 
-## DNS准备
+## 2、DNS准备
 
 https://www.cloudns.net/
 
-申请很简单，不介绍了。
+申请很简单，不介绍了。添加域名的IP一定要纯，不然会提示IP滥用。换个代理地址就可以了。
 
 创建域点击这里的添加记录
 
@@ -44,7 +65,7 @@ https://www.cloudns.net/
 
 
 
-## 如何使用？
+## 3、如何使用？
 
 > [!caution]
 >
@@ -72,7 +93,7 @@ https://www.cloudns.net/
 [xxx@s5]:<~>$ chmod u+x initialize_serv00 
 ```
 
-### 初始化vps
+### 3.1、初始化vps
 
 这步操作有其他数据的慎用！！！
 
@@ -82,7 +103,7 @@ https://www.cloudns.net/
 >
 > 三个端口是服务器的上限！如果有其他占用端口的情况可能会出现异常情况。
 
-### 部署
+### 3.2、部署
 
 这里的前提条件就是 域名的A记录一定要设置正确，脚本会使用 `nslookup 域名` 来检测是否设置正确，因为后面的ssl证书也会使用到A记录。
 
@@ -109,11 +130,13 @@ USER     COMMAND    PID   FD  PROTO  LOCAL ADDRESS         FOREIGN ADDRESS
 [xxx@s5]:<~>$ ./deployment 
 ```
 
+**其实熟悉之后只需要这个命令就可以完成了。**
+
 只需要根据上图步骤就可以完成部署。
 
-#### 客户端 URL 获取
+#### 3.2.1、客户端 URL 获取
 
-##### 复制URL
+##### 3.2.1.1、复制URL
 
 https://xxx/panel.html
 
@@ -135,7 +158,7 @@ https://xxx/panel.html
 
 免费的vps 速度肯定有一些限制。比一般小机场好很多了。
 
-##### 使用订阅连接
+##### 3.2.1.2、使用订阅连接
 
 https://xxx/sub.txt
 
@@ -151,7 +174,7 @@ https://xxx/sub.txt
 
 速度还可以。
 
-### 计划任务
+### 3.3、计划任务
 
 服务器要添加一条计划任务
 
@@ -161,7 +184,7 @@ https://xxx/sub.txt
 
 
 
-## 多台 serv00 VPS怎么操作？
+## 4、多台 serv00 VPS怎么操作？
 
 可以使用ssh互信脚本
 
@@ -174,7 +197,7 @@ $ ssh-keygen -t rsa       # 生成各自的key文件
 $ ssh-copy-id -i  .ssh/id_rsa.pub xxx@sx.serv00.com
 ```
 
-设置完成 ctrl+d 退出一个 shell ，不然会出现权限不足。
+设置完成 ctrl+d 退出 shell 再进入，不然会出现权限不足。
 
 > [!tip]
 >
@@ -198,9 +221,9 @@ $ ssh-copy-id -i  .ssh/id_rsa.pub xxx@sx.serv00.com
 
 
 
-## 邮件告警
+## 5、邮件告警
 
-s7 经常被杀。只能做个脚本配合 serv00 的计划任务 每小时检查一次，如果 v2ray 被杀了 就启动。并且发送邮件告警。
+s7 经常被杀。只能做个脚本配合 serv00 的计划任务 每30分钟检查一次，如果 v2ray 被杀了 就启动。并且发送邮件告警。
 
 脚本 smail 中email 变量设置成自己的 email。
 
