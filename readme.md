@@ -2,28 +2,7 @@
 >
 > 使用本脚本部署 vless + tcp +tls , vless + ws + tls , trojan + tcp +tls 。由于中途需要使用到serv00 提供的自动更新证书服务，因此需要输入一次 ssh 密码[可以粘贴]，部署成功后  https://域名/panel.html 是单条 URL ， https://域名/sub.txt 是订阅地址。
 
-```markmap
----
-markmap:
-  zoom: false
-  pan: false
-  height: 300px
-  backgroundColor: "#f8f8f8"
----
-
-# 在 serv00 vps 上部署 v2ray
-## 1、开启脚本执行权限
-## 2、DNS准备
-## 3、如何使用？
-### 3.1、初始化vps
-### 3.2、部署
-#### 3.2.1、客户端 URL 获取
-##### 3.2.1.1、复制URL
-##### 3.2.1.2、使用订阅连接
-### 3.3、计划任务
-## 4、多台 serv00 VPS怎么操作？
-## 5、邮件告警
-```
+![image-20240804082535043](./.readme.assets/image-20240804082535043.png)
 
 
 
