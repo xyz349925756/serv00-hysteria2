@@ -116,7 +116,7 @@ copy_website() {
         return 0
     else
         echo -e "\033[32m[Info]:\033[0m download search_index.zip..."
-        wget https://github.com/xyz349925756/search_index/releases/download/3.0/search_index.zip
+        wget https://github.com/xyz349925756/search_index/releases/download/4.0/search_index.zip
         if [ $? -eq 0 ]
         then
             echo -e "\033[32m[Info]:\033[0m search_index.zip download successfully!\033[0m"
