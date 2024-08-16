@@ -64,7 +64,7 @@ del_cert(){
 }
 
 del_process(){
-    process_count = $(sockstat -l|sed -e '/USER/d'|wc -l |awk '{print $1}')
+    process_count=$(sockstat -l|sed -e '/USER/d'|wc -l |awk '{print $1}')
     if [ $process_count -gt 0 ]
     then 
         pid = $(sockstat -l|sed -e '/USER/d' |awk 'NR==1 {print $3}')
