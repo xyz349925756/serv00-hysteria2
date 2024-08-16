@@ -2,7 +2,7 @@
 
 # create "vless + tcp + tls" "vless + ws + tls" "trojan + tcp + tls" in the serv00 vps.
 
-email = "wang@cloudb.pub"
+email="wang@cloudb.pub"
 serv_ip () {
 	# 提取服务器 web ip
 	hostname=$(uname -n|awk -F"." '{print $1}')
@@ -165,7 +165,9 @@ v2ray_download() {
 #              main code
 ########################################################################
 
-read -p "please input your domain : " domain
+read -p "please input your domain : " $1
+
+domain=$1
 
 if [ -z $domain ]
 then
