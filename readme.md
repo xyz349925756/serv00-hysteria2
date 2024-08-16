@@ -9,6 +9,8 @@ markmap:
 > [!tip]
 >
 > 使用本脚本部署 vless + tcp +tls , vless + ws + tls , trojan + tcp +tls 。由于中途需要使用到serv00 提供的自动更新证书服务，因此需要输入一次 ssh 密码[可以粘贴]，部署成功后  https://域名/panel.html 是单条 URL ， https://域名/sub.txt 是订阅地址。
+> 这里在部署文件添加了 email 部署完成会发送客户端 URL 到指定的 email 。一定要修改！
+> 多台的直接编辑到一个 sub.txt 文件中放到其中某台的 public_html 目录下即可https://域名/sub.txt。
 
 ![image-20240804082535043](./.readme.assets/image-20240804082535043.png)
 
@@ -215,6 +217,9 @@ s7 经常被杀。只能做个脚本配合 serv00 的计划任务 每30分钟检
 脚本 smail 中email 变量设置成自己的 email。
 
 记得给 smail 设置权限
+
+部署脚本中 email 改成自己的。
+
 
 ```shell
 chmod u+x smail
