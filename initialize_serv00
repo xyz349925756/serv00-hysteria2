@@ -35,7 +35,7 @@ del_website(){
 del_port(){
     ports=$(devil port list|sed -e '/^$/d' -e '/Port/d'|awk '{print $1}')
     ports_num=$(devil port list|sed -e '/^$/d' -e '/Port/d'|wc -l|awk '{print $1}')
-    if [ `devil port list|sed -e '/^$/d' -e '/Port/d'|awk '{print $1}'` = "No" ]
+    if [ "`devil port list|sed -e '/^$/d' -e '/Port/d'|awk '{print $1}'`" = "No" ]
     then
         echo "The port is empty!"
         return 0
@@ -63,15 +63,28 @@ del_cert(){
     fi    
 }
 
+del_process(){
+    process_count = $(sockstat -l|sed -e '/USER/d'|wc -l |awk '{print $1}')
+    if [ $process_count -gl 0 ]
+    then 
+        pid = $(sockstat -l|sed -e '/USER/d' |awk 'NR==1 {print $3}')
+        kill $pid
+        return 0
+    else
+        echo "process is not running!"
+}
+
 del_dir(){
     rm -rf ~/v2ray 2> tmp.log
-    rm -rf cert 2> tmp.log
-    rm cret.txt 2> tmp.log
-    rm v2ray-freebsd-64.zip 2> tmp.log
-    rm search_index.zip 2> tmp.log
+    rm ~/v2ray-freebsd-64.zip 2> tmp.log
+    rm ~/v2ray.log 2> tmp.log
+    rm -rf ~/cert 2> tmp.log
+    rm ~/cret.txt 2> tmp.log
     rm -rf ~/domains/v2ray 2> tmp.log
-    rm nohup.out 2> tmp.log
-    rm v2ray.log 2> tmp.log
+    rm ~/search_index.zip 2> tmp.log
+    rm ~/search_index.log 2> tmp.log
+    rm ~/nohup.out 2> tmp.log
+    rm -rf ~/serv00-v2ray 2> tmp.log
 }
 
 echo -e "\033[41;36m[Caution]:\033[0m \033[31mThis script will delete all the settings of the SERV00 server, please execute carefully！！！\033[0m"
@@ -79,6 +92,7 @@ read -n 1 -p "Please input your choice [y/n]: " answer
 case $answer in
    Y|y) echo
         echo -e "Delete the domain name, website, port, certificate, website directory content, please later ..."
+        del_process
         del_website
         del_cert
         del_port
