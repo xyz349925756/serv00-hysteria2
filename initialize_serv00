@@ -72,6 +72,7 @@ del_process(){
         return 0
     else
         echo "process is not running!"
+    fi
 }
 
 del_dir(){
