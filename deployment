@@ -165,14 +165,17 @@ v2ray_download() {
 #              main code
 ########################################################################
 
-read -p "please input your domain : " $1
-
-domain=$1
+if [ -z $1 ]
+then
+    read -p "please input your domain : " domain
+else
+    domain="$1"
+fi
 
 if [ -z $domain ]
 then
 	echo -e "\033[31m[Error]:\033[0m please input your domain!"
-	exit 0
+	exit 1
 fi
 
 echo -e "The DNS A record are being verified, please later... : \033[31m $domain \033[0m"
