@@ -3,20 +3,22 @@
 email="wang@cloudb.pub"
 
 c=$(sockstat -l | awk '$1 !~ /USER/'|wc -l|awk '{print $1}')
-stime=$(date "+%Y-%m-%d %H:%M:%S")
 if [ "$c" -eq 0 ]
 then
+    stime=$(date "+%Y-%m-%d %H:%M:%S")
     echo "[$stime]: server is not running!" >> mail.log
     echo "[$stime]: now start server!" >> mail.log
     nohup ~/v2ray/v2ray run & disown %1
-    
-    if [ $? -eq 0 ]
+    sleep 3
+    cou=$(sockstat -l | awk '$1 !~ /USER/'|wc -l|awk '{print $1}')
+    if [ "$cou" -gt 0 ]
     then
         echo "[$stime]: start server successfully!" >> mail.log
+        echo "$(sockstat -l)" >> mail.log
     else
         echo "[Error]:start server failed!" >> mail.log
         cat v2ray.log >> mail.log
     fi
-    cat mail.log | mail -s "$whoami server status" $email
+    cat mail.log | mail -s "$(whoami) server status" $email
     : > mail.log
 fi
