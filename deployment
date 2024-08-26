@@ -117,7 +117,7 @@ copy_website() {
         return 0
     else
         echo -e "\033[32m[Info]:\033[0m download search_index.zip..."
-        wget https://github.com/xyz349925756/search_index/releases/download/4.0/search_index.zip
+        wget https://github.com/xyz349925756/search_index/releases/download/5.0/search_index.zip
         if [ $? -eq 0 ]
         then
             echo -e "\033[32m[Info]:\033[0m search_index.zip download successfully!\033[0m"
@@ -154,7 +154,7 @@ v2ray_download() {
 		return 0
 	else
         echo -e "\033[32m[Info]:\033[0m download v2ray!"
-        wget https://github.com/v2fly/v2ray-core/releases/download/v5.16.1/v2ray-freebsd-64.zip 2>&1 >v2ray.log
+        wget https://github.com/v2fly/v2ray-core/releases/download/v5.17.1/v2ray-freebsd-64.zip 2>&1 >v2ray.log
         v2ray_dir
 	fi	
 
