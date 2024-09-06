@@ -34,7 +34,7 @@ del_website(){
 # port
 del_port(){
     ports=$(devil port list|sed -e '/^$/d' -e '/Port/d'|awk '{print $1}')
-    ports_num=$(devil port list|sed -e '/^$/d' -e '/Port/d'|wc -l|awk '{print $1}')
+    ports_num=$(devil port list|sed -e '/^$/d' -e '/Port/d'|wc -l)
     if [ "`devil port list|sed -e '/^$/d' -e '/Port/d'|awk '{print $1}'`" = "No" ]
     then
         echo "The port is empty!"
@@ -43,6 +43,7 @@ del_port(){
         for i in ${ports[@]}
         do
             devil port del tcp $i
+            devil port del udp $i
         done
     fi
 }
