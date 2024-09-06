@@ -150,36 +150,30 @@ hysteria_download() {
 
 yaml_file() {
     cat >~/config.yaml <<EOF
-server: "0.0.0.0:$UDP_PORT"  # 服务端监听地址和端口
+listen: :$UDP_PORT
 
-hysteria:
-  protocol: udp
-  auth:
-    type: password
-    password: "$HYSTERIA_PASS"
-  tls:
-    cert: $TLS_CERT
-    key: $TLS_KEY
-    sni: $domain
-    insecure: false
-  fastOpen: true
-  masquerade:
-    type: proxy
-    proxy:
-      url: $HYSTERIA_URL
-      rewriteHost: true
-  transport:
-    udp:
-      hopInterval: 30s
+tls:
+  cert: $TLS_CERT
+  key: $TLS_KEY
+
+fastOpen: true
+
+auth:
+  type: password
+  password: "$HYSTERIA_PASS"
+
+masquerade:
+  type: proxy
+proxy:
+  url: $HYSTERIA_URL
+  rewriteHost: true
 
 socks5:
-  listen: 127.0.0.1:$TCP_PORT  
+  listen: :$TCP_PORT  
   protocol: socks
   auth:
     username: "$SOCKS5_USER"
     password: "$SOCKS5_PASS"
-  allow_udp: true
-
 EOF
 }
 
