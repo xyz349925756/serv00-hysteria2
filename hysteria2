@@ -23,7 +23,7 @@ green() {
 }
 
 reading() {
-    read -p "$(yellow '$1')" "$2"
+    read -p "$(yellow "$1")" "$2"
 }
 
 # web_ip
@@ -65,7 +65,7 @@ check_port() {
         red "Already existing ports: " $(devil port list | sed -e '/Port/d' -e '/^$/d')
         yellow "If you want to add ports, please use 'devil port del tcp port' or 'devil port del udp port' or './initialize_serv00'. "
         yellow "Please restart the script after deleting the port."
-        return 1
+        exit 1
     fi
 }
 
@@ -108,7 +108,7 @@ copy_cert() {
         mkdir -p ~/cert
         awk '/-----BEGIN CERTIFICATE-----/,/-----END CERTIFICATE-----/' cret.txt >~/cert/cert.pem
         awk '/-----BEGIN PRIVATE KEY-----/,/-----END PRIVATE KEY-----/' cret.txt >~/cert/cert.key
-        return 1
+        return 0
     else
         red "Download failed!"
     fi
@@ -119,7 +119,7 @@ copy_website() {
     rm -rf ~/domains/$domain/public_html/index.html
     if [ -f "search_index.zip" ]; then
         red "search_index.zip already exists!"
-        return 0
+        exit 0
     else
         green "download search_index.zip..."
         wget https://github.com/xyz349925756/search_index/releases/download/5.0/search_index.zip 2>&1 >/dev/null
@@ -237,7 +237,7 @@ main() {
     else
     red "Error: $domain is not ready!" 
     red "Please add A record in your DNS record, point to the direction."
-	printf -- "|%.s" {1..50};echo
+	printf -- "♥%.s" {1..50};echo
 	yellow "\t A \t host \t $web_ip "
 	printf -- "|%.s" {1..50};echo
     
