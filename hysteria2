@@ -6,7 +6,7 @@ SOCKS5_USER=$(uuidgen | tr -d '-' | head -c 8)
 SOCKS5_PASS=$(uuidgen)
 TLS_CERT="/home/$(whoami)/cert/cert.pem"
 TLS_KEY="/home/$(whoami)/cert/cert.key"
-HYSTERIA_USER=$(uuidgen | tr -d '-' | head -c 8)
+# HYSTERIA_USER=$(uuidgen | tr -d '-' | head -c 8)
 HYSTERIA_PASS=$(uuidgen | tr -d '-')
 HYSTERIA_URL="https://bing.com"
 
@@ -122,7 +122,7 @@ copy_website() {
     rm -rf ~/domains/$domain/public_html/index.html
     if [ -f "search_index.zip" ]; then
         red "search_index.zip already exists!"
-        exit 0
+        return 0
     else
         green "download search_index.zip..."
         wget -q https://github.com/xyz349925756/search_index/releases/download/5.0/search_index.zip 2>&1 > /dev/null 
@@ -150,43 +150,35 @@ hysteria_download() {
 
 yaml_file() {
     cat >~/config.yaml <<EOF
-server:
-  listen: $web_ip:$UDP_PORT  # 确保监听地址和端口设置正确
+server: "0.0.0.0:$UDP_PORT"  # 服务端监听地址和端口
 
-  # Hysteria 传输协议设置
-  hysteria:
-    protocol: udp  # 使用 UDP 协议
-    auth:
-      type: password
-      password: "$HYSTERIA_PASS"  # 密码认证
-    tls:
-      cert: $TLS_CERT
-      key: $TLS_KEY
-      sni: $domain  # 如果需要，指定服务器域名
-      insecure: false  # 确保证书验证
-    
-  fastOpen: true  # 启用快速打开
-
+hysteria:
+  protocol: udp
+  auth:
+    type: password
+    password: "$HYSTERIA_PASS"
+  tls:
+    cert: $TLS_CERT
+    key: $TLS_KEY
+    sni: $domain
+    insecure: false
+  fastOpen: true
   masquerade:
     type: proxy
     proxy:
       url: $HYSTERIA_URL
       rewriteHost: true
-
   transport:
     udp:
       hopInterval: 30s
 
-  socks5:
-    listen: 127.0.0.1:$TCP_PORT  # 如果需要 SOCKS5 代理，确保配置正确
-    auth:
-      username: $SOCKS5_USER
-      password: $SOCKS5_PASS
-    allow_udp: true
-
-obfs:
-  type: shadow
-  password: $SOCKS5_PASS
+socks5:
+  listen: 127.0.0.1:$TCP_PORT  
+  protocol: socks
+  auth:
+    username: "$SOCKS5_USER"
+    password: "$SOCKS5_PASS"
+  allow_udp: true
 
 EOF
 }
@@ -226,8 +218,7 @@ main() {
         hysteria_download
         yaml_file
         url_generate
-        echo "$hysteria2" | mail -s "$domain sub" $EMAIL
-        echo "$socks5" | mail -s "$domain sub" $EMAIL
+        echo "$hysteria2" "$socks5" | mail -s "$domain sub" $EMAIL
         nohup ~/hysteria -c ~/config.yaml &
         disown %1
 
