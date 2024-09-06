@@ -94,6 +94,7 @@ set_cert() {
             return 1
         else
             green "Create the SSL certificate, please later..."
+            yellow $web_ip $domain
             devil ssl www add $web_ip le le $domain
         fi
     done
