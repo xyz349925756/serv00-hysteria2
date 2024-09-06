@@ -150,30 +150,53 @@ hysteria_download() {
 
 yaml_file() {
     cat >~/config.yaml <<EOF
-listen: :$UDP_PORT
+# Hysteria 配置
+server:
+  listen: :$UDP_PORT
 
-tls:
-  cert: $TLS_CERT
-  key: $TLS_KEY
+  tls:
+    cert: $TLS_CERT
+    key: $TLS_KEY
 
-fastOpen: true
-
-auth:
-  type: password
-  password: "$HYSTERIA_PASS"
-
-masquerade:
-  type: proxy
-proxy:
-  url: $HYSTERIA_URL
-  rewriteHost: true
-
-socks5:
-  listen: :$TCP_PORT  
-  protocol: socks
   auth:
-    username: "$SOCKS5_USER"
-    password: "$SOCKS5_PASS"
+    type: password
+    password: "$HYSTERIA_PASS"
+
+  fastOpen: true
+
+  masquerade:
+    type: proxy
+    proxy:
+      url: $HYSTERIA_URL
+      rewriteHost: true
+
+  transport:
+    udp:
+      hopInterval: 30s
+
+# SOCKS5 配置
+log:
+  access: /dev/null
+  error: /dev/null
+  loglevel: none
+
+inbounds:
+  - port: $TCP_PORT
+    protocol: socks
+    tag: socks
+    settings:
+      auth: password
+      udp: false
+      ip: 0.0.0.0
+      userLevel: 0
+      accounts:
+        - user: $SOCKS5_USER
+          pass: $SOCKS5_PASS
+
+outbounds:
+  - tag: direct
+    protocol: freedom
+
 EOF
 }
 
@@ -212,9 +235,8 @@ main() {
         hysteria_download
         yaml_file
         url_generate
-        echo "$hysteria2" "$socks5" | mail -s "$domain sub" $EMAIL
-        nohup ~/hysteria -c ~/config.yaml &
-        disown %1
+        echo -e "$hysteria2" "\n" "$socks5" | mail -s "$domain sub" $EMAIL
+        nohup ~/hysteria server -c ~/config.yaml & disown %1
 
     else
         red "Error: $domain is not ready!"
