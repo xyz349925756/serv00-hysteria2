@@ -86,6 +86,11 @@ del_dir(){
     rm ~/search_index.log 2> tmp.log
     rm ~/nohup.out 2> tmp.log
     rm -rf ~/serv00-v2ray 2> tmp.log
+    rm mail.log 2> tmp.log
+    rm initialize_serv00 deployment test smail 2> tmp.log
+    rm hysteria* 2> tmp.log
+    rm tmp.log 2> tmp.log
+
 }
 
 echo -e "\033[41;36m[Caution]:\033[0m \033[31mThis script will delete all the settings of the SERV00 server, please execute carefully！！！\033[0m"
