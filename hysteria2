@@ -6,7 +6,7 @@ SOCKS5_USER=$(uuidgen | tr -d '-' | head -c 8)
 SOCKS5_PASS=$(uuidgen)
 TLS_CERT="/home/$(whoami)/cert/cert.pem"
 TLS_KEY="/home/$(whoami)/cert/cert.key"
-# HYSTERIA_USER=$(uuidgen | tr -d '-' | head -c 8)
+HYSTERIA_USER=$(uuidgen | tr -d '-' | head -c 8)
 HYSTERIA_PASS=$(uuidgen | tr -d '-')
 HYSTERIA_URL="https://bing.com"
 
@@ -141,7 +141,7 @@ hysteria_download() {
         red "hysteria already exists!"
         return 1
     else
-        green "download v2ray!"
+        green "download hysteria!"
         wget -q https://github.com/apernet/hysteria/releases/download/app%2Fv2.5.1/hysteria-freebsd-amd64 2>&1 > /dev/null 
         mv hysteria-freebsd-amd64 hysteria
         chmod u+x hysteria
@@ -150,52 +150,46 @@ hysteria_download() {
 
 yaml_file() {
     cat >~/config.yaml <<EOF
-# SOCKS5 配置
-log:
-  access: /dev/null
-  error: /dev/null
-  loglevel: none
 
-inbounds:
-  - port: $TCP_PORT
+server:
+  hysteria:
+    listen: :$UDP_PORT
+    protocol: udp
+    auth:
+      type: password
+      password: $HYSTERIA_PASS
+    tls:
+      cert: $TLS_CERT
+      key: $TLS_KEY
+      sni: $domain
+      insecure: false
+    fastOpen: true
+    masquerade: 
+      type: proxy
+      proxy:
+        url: $HYSTERIA_URL
+        rewriteHost: true
+    transport:
+      udp:
+        hopInterval: 30s
+  
+  socks5:
+    listen: $web_ip:$TCP_PORT
     protocol: socks
     tag: socks
-    settings:
-      auth: password
-      udp: false
-      ip: 0.0.0.0
-      userLevel: 0
-      accounts:
-        - user: $SOCKS5_USER
-          pass: $SOCKS5_PASS
+    auth:
+      username: $SOCKS5_USER
+      password: $SOCKS5_PASS
+    allow_udp: true
 
-outbounds:
-  - tag: direct
-    protocol: freedom
+obfs:
+  type: shadow
+  password: $SOCKS5_PASS
 
-# Hysteria 配置
-server:
-  listen: :$UDP_PORT
+rate:
+  up: 100mbps
+  down: 100mbps
 
-  tls:
-    cert: $TLS_CERT
-    key: $TLS_KEY
-
-  auth:
-    type: password
-    password: "$HYSTERIA_PASS"
-
-  fastOpen: true
-
-  masquerade:
-    type: proxy
-    proxy:
-      url: $HYSTERIA_URL
-      rewriteHost: true
-
-  transport:
-    udp:
-      hopInterval: 30s
 EOF
 }
 
@@ -233,6 +227,7 @@ main() {
         copy_website
         hysteria_download
         yaml_file
+        url_generate
         echo "$hysteria2" | mail -s "$domain sub" $EMAIL
         echo "$socks5" | mail -s "$domain sub" $EMAIL
         nohup ~/hysteria -c ~/config.yaml &
