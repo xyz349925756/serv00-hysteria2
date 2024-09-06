@@ -42,8 +42,8 @@ del_port(){
     else    
         for i in ${ports[@]}
         do
-            devil port del tcp $i 2> /dev/null
-            devil port del udp $i 2> /dev/null
+            devil port del tcp $i 2>&1 > /dev/null
+            devil port del udp $i 2>&1 > /dev/null
         done
     fi
 }
