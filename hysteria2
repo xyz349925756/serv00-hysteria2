@@ -237,9 +237,9 @@ main() {
     else
     red "Error: $domain is not ready!" 
     red "Please add A record in your DNS record, point to the direction."
-	printf -- "♥%.s" {1..50};echo
+	printf -- "♦%.s" {1..50};echo
 	yellow "\t A \t host \t $web_ip "
-	printf -- "|%.s" {1..50};echo
+	printf -- "♦%.s" {1..50};echo
     
 fi
 }
