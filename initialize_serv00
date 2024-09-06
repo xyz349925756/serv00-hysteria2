@@ -90,6 +90,7 @@ del_dir(){
     rm mail.log 2> tmp.log
     rm initialize_serv00 deployment test smail 2> tmp.log
     rm hysteria* 2> tmp.log
+    rm config.yaml 2> tmp.log
     rm tmp.log 2> tmp.log
 
 }

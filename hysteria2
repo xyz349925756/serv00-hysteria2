@@ -42,6 +42,7 @@ serv00_ip() {
 # add tcp port
 add_tcp_port() {
     devil port add tcp Random 2>/dev/null
+    sleep 1
     tcp_port=$(devil port list | sed -e "/Port/d" -e "/^$/d" | awk '{ if ($2=="tcp") print $1}')
     echo $tcp_port
 }
@@ -49,6 +50,7 @@ add_tcp_port() {
 # add udp port
 add_udp_port() {
     devil port add udp Random 2>/dev/null
+    sleep 1
     udp_port=$(devil port list | sed -e "/Port/d" -e "/^$/d" | awk '{ if ($2=="udp") print $1}')
     echo $udp_port
 }
@@ -65,7 +67,7 @@ check_port() {
         red "Already existing ports: " $(devil port list | sed -e '/Port/d' -e '/^$/d')
         yellow "If you want to add ports, please use 'devil port del tcp port' or 'devil port del udp port' or './initialize_serv00'. "
         yellow "Please restart the script after deleting the port."
-        exit 1
+        return 1
     fi
 }
 
@@ -147,7 +149,7 @@ hysteria_download() {
 }
 
 yaml_file() {
-cat > ~/config.yaml <<EOF
+    cat >~/config.yaml <<EOF
 # SOCKS5 配置
 log:
   access: /dev/null
@@ -215,15 +217,14 @@ main() {
         red "please input your domain!"
         exit 1
     fi
-    
+
     serv00_ip
 
     yellow "The DNS A record are being verified, please later... :  $domain "
 
     dns_a_ip=$(host $domain | awk '{print $4}')
 
-    if [ -n "$dns_a_ip" ] && [ "$dns_a_ip" = "$web_ip" ]
-    then
+    if [ -n "$dns_a_ip" ] && [ "$dns_a_ip" = "$web_ip" ]; then
         green " $domain is ready!"
         check_port
         set_website
@@ -232,17 +233,21 @@ main() {
         copy_website
         hysteria_download
         yaml_file
-        echo "$(url_generate)" | mail -s "$domain sub" $email
-        nohup ~/hysteria -c ~/config.yaml & disown %1
+        echo "$hysteria2" | mail -s "$domain sub" $EMAIL
+        echo "$socks5" | mail -s "$domain sub" $EMAIL
+        nohup ~/hysteria -c ~/config.yaml &
+        disown %1
 
     else
-    red "Error: $domain is not ready!" 
-    red "Please add A record in your DNS record, point to the direction."
-	printf -- "♦%.s" {1..50};echo
-	yellow "\t A \t host \t $web_ip "
-	printf -- "♦%.s" {1..50};echo
-    
-fi
+        red "Error: $domain is not ready!"
+        red "Please add A record in your DNS record, point to the direction."
+        printf -- "♦%.s" {1..50}
+        echo
+        yellow "\t A \t host \t $web_ip "
+        printf -- "♦%.s" {1..50}
+        echo
+
+    fi
 }
 
 main $1
