@@ -41,7 +41,7 @@ serv00_ip() {
 
 # add tcp port
 add_tcp_port() {
-    devil port add tcp Random 2>/dev/null
+    devil port add tcp Random 2>&1 > /dev/null 
     sleep 1
     tcp_port=$(devil port list | sed -e "/Port/d" -e "/^$/d" | awk '{ if ($2=="tcp") print $1}')
     echo $tcp_port
@@ -49,7 +49,7 @@ add_tcp_port() {
 
 # add udp port
 add_udp_port() {
-    devil port add udp Random 2>/dev/null
+    devil port add udp Random 2>&1 > /dev/null 
     sleep 1
     udp_port=$(devil port list | sed -e "/Port/d" -e "/^$/d" | awk '{ if ($2=="udp") print $1}')
     echo $udp_port
@@ -125,10 +125,10 @@ copy_website() {
         exit 0
     else
         green "download search_index.zip..."
-        wget https://github.com/xyz349925756/search_index/releases/download/5.0/search_index.zip 2>&1 >/dev/null
+        wget -q https://github.com/xyz349925756/search_index/releases/download/5.0/search_index.zip 2>&1 > /dev/null 
         if [ $? -eq 0 ]; then
             green "search_index.zip download successfully!"
-            unzip -d ~/domains/$domain/public_html search_index.zip 2>&1 >/dev/null
+            unzip -d ~/domains/$domain/public_html search_index.zip 2>&1 > /dev/null 
         else
             red "search_index.zip download failed!"
         fi
@@ -142,7 +142,7 @@ hysteria_download() {
         return 1
     else
         green "download v2ray!"
-        wget https://github.com/apernet/hysteria/releases/download/app%2Fv2.5.1/hysteria-freebsd-amd64 2>&1 >/dev/null
+        wget -q https://github.com/apernet/hysteria/releases/download/app%2Fv2.5.1/hysteria-freebsd-amd64 2>&1 > /dev/null 
         mv hysteria-freebsd-amd64 hysteria
         chmod u+x hysteria
     fi
