@@ -233,7 +233,7 @@ main() {
         yaml_file
         echo "$(url_generate)" | mail -s "$domain sub" $email
         nohup ~/hysteria -c ~/config.yaml & disown %1
-        
+
     else
     red "Error: $domain is not ready!" 
     red "Please add A record in your DNS record, point to the direction."
@@ -244,3 +244,4 @@ main() {
 fi
 }
 
+main $1
