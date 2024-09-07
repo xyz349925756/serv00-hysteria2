@@ -55,6 +55,7 @@ check_port() {
         green "UDP_PORT: " $UDP_PORT
     else
         red "Already existing ports: " $(devil port list | sed -e '/Port/d' -e '/^$/d')
+        red "You need to delete them now!"
         read -n 1 -p "Please input your choice [y/n]: " answer
         case $answer in
         Y|y) echo
@@ -65,7 +66,7 @@ check_port() {
                 echo "Aborted, please re-execute the script."
                 exit;;
         esac
-        return 1
+        exit 1
     fi
 }
 
@@ -82,7 +83,7 @@ copy_website() {
         wget -q -P $HYSTERIA_WORKDIR https://github.com/xyz349925756/search_index/releases/download/5.0/search_index.zip 2>&1 > /dev/null 
         if [ $? -eq 0 ]; then
             green "search_index.zip download successfully!"
-            unzip -d ~/domains/$DOMAIN/public_html search_index.zip 2>&1 > /dev/null 
+            unzip -d ~/domains/$DOMAIN/public_html $HYSTERIA_WORKDIR/search_index.zip 2>&1 > /dev/null 
         else
             red "search_index.zip download failed!"
         fi
@@ -155,7 +156,7 @@ main() {
         email="$1"
     fi
 
-    if [ -z $domain ]
+    if [ -z $email ]
     then
         yellow "Your Hysteria2 URL will not be sent to your email!"
         return 1
@@ -176,4 +177,4 @@ main() {
 
 }
 
-main
+main $1
