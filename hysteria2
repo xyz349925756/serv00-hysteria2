@@ -1,14 +1,12 @@
 #!/bin/bash
 
 # variable
-EMAIL="wang@cloudb.pub"
-SOCKS5_USER=$(uuidgen | tr -d '-' | head -c 8)
-SOCKS5_PASS=$(uuidgen)
-TLS_CERT="/home/$(whoami)/cert/cert.pem"
-TLS_KEY="/home/$(whoami)/cert/cert.key"
-# HYSTERIA_USER=$(uuidgen | tr -d '-' | head -c 8)
+SERVER_IP=$(curl -s ifconfig.me)
 HYSTERIA_PASS=$(uuidgen | tr -d '-')
-HYSTERIA_URL="https://bing.com"
+
+HYSTERIA_WORKDIR=~/.hysteria2
+
+[ ! -d $HYSTERIA_WORKDIR ] && mkdir -p $HYSTERIA_WORKDIR
 
 # color function
 red() {
@@ -26,28 +24,6 @@ reading() {
     read -p "$(yellow "$1")" "$2"
 }
 
-# web_ip
-serv00_ip() {
-    hostname=$(uname -n | awk -F"." '{print $1}')
-    hosts=(s1 s2 s3 s4 s5 s6 s7 s8 s9 s10 s11 s12 s13 s14 s15)
-    web_host=$(uname -n | awk 'BEGIN{FS="."}; {print $1}' | sed 's/s/web/')
-    for i in ${hosts[@]}; do
-        if [ "$i" = "$hostname" ]; then
-            web_ip=$(devil vhost list | grep -w $web_host | awk '{print $1}')
-            yellow "web ip is : $web_ip"
-        fi
-    done
-}
-
-# add tcp port
-add_tcp_port() {
-    devil port add tcp Random 2>&1 > /dev/null 
-    sleep 1
-    tcp_port=$(devil port list | sed -e "/Port/d" -e "/^$/d" | awk '{ if ($2=="tcp") print $1}')
-    echo $tcp_port
-}
-
-# add udp port
 add_udp_port() {
     devil port add udp Random 2>&1 > /dev/null 
     sleep 1
@@ -55,80 +31,58 @@ add_udp_port() {
     echo $udp_port
 }
 
+del_port(){
+    ports=$(devil port list|sed -e '/^$/d' -e '/Port/d'|awk '{print $1}')
+    ports_num=$(devil port list|sed -e '/^$/d' -e '/Port/d'|wc -l)
+    if [ "`devil port list|sed -e '/^$/d' -e '/Port/d'|awk '{print $1}'`" = "No" ]
+    then
+        echo "The port is empty!"
+        return 0
+    else    
+        for i in ${ports[@]}
+        do
+            devil port del tcp $i 2> /dev/null
+            devil port del udp $i 2> /dev/null
+        done
+    fi
+}
+
 # check port
 check_port() {
     a=$(devil port list | sed -e '/Port/d' -e '/^$/d' | awk '$1 ~ /[0-9]+/ {print $1}' | wc -l)
     if [ $a -eq 0 ]; then
-        TCP_PORT=$(add_tcp_port)
         UDP_PORT=$(add_udp_port)
-        green "TCP_PORT: " $TCP_PORT
         green "UDP_PORT: " $UDP_PORT
     else
         red "Already existing ports: " $(devil port list | sed -e '/Port/d' -e '/^$/d')
-        yellow "If you want to add ports, please use 'devil port del tcp port' or 'devil port del udp port' or './initialize_serv00'. "
-        yellow "Please restart the script after deleting the port."
+        read -n 1 -p "Please input your choice [y/n]: " answer
+        case $answer in
+        Y|y) echo
+                echo -e "Delete the port please later ..."
+                del_port
+                ;;
+        N|n) echo
+                echo "Aborted, please re-execute the script."
+                exit;;
+        esac
         return 1
     fi
 }
 
-# check website
-set_website() {
-    green "Check the website, please later..."
-    domains=$(devil www list | sed -e '/Domain/d' -e '/^$/d' | awk '{print $1}')
-    for i in ${domains[@]}; do
-        if [ "$i" = "$domain" ]; then
-            red "The domain $i already exists."
-            return 1
-        else
-            green "Create a website, please later..."
-            devil www add $domain php
-        fi
-    done
-}
-
-# check cert
-set_cert() {
-    green "Check the SSL certificate, please later..."
-    ssls=$(devil ssl www list | sed -e '/^$/d' | awk 'NR>5 {print $1}')
-    for i in ${ssls[@]}; do
-        if [ "$i" = "$domain" ]; then
-            red "The domain $i ssl certificate already exists."
-            return 1
-        else
-            green "Create the SSL certificate, please later..."
-            yellow $web_ip $domain
-            devil ssl www add $web_ip le le $domain
-        fi
-    done
-}
-
-# Copy certificate to cert directory
-copy_cert() {
-    yellow "Download the SSL certificate, please input your ssh password!"
-    devil ssl www get $(devil ssl www list | sed -e '/^$/d' | awk 'NR>5 {print $6,$1}') >~/cret.txt
-    if [ $? -eq 0 ]; then
-        green "Download successfully!"
-        mkdir -p ~/cert
-        awk '/-----BEGIN CERTIFICATE-----/,/-----END CERTIFICATE-----/' cret.txt >~/cert/cert.pem
-        awk '/-----BEGIN PRIVATE KEY-----/,/-----END PRIVATE KEY-----/' cret.txt >~/cert/cert.key
-        return 0
-    else
-        red "Download failed!"
-    fi
-}
 
 # copy website
 copy_website() {
-    rm -rf ~/domains/$domain/public_html/index.html
-    if [ -f "search_index.zip" ]; then
-        red "search_index.zip already exists!"
+    DOMAIN=$(devil www list | sed -e '/Domain/d' -e '/^$/d'|awk -F"." '{ if ($2=="serv00") print $0 }'|awk '{print $1}')
+    rm -rf ~/domains/$DOMAIN/public_html/index.html
+    if [ -f "$HYSTERIA_WORKDIR/search_index.zip" ]; then
+        red "$HYSTERIA_WORKDIR/search_index.zip already exists!"
         return 0
     else
         green "download search_index.zip..."
-        wget -q https://github.com/xyz349925756/search_index/releases/download/5.0/search_index.zip 2>&1 > /dev/null 
+        wget -q -P $HYSTERIA_WORKDIR https://github.com/xyz349925756/search_index/releases/download/5.0/search_index.zip 2>&1 > /dev/null 
         if [ $? -eq 0 ]; then
             green "search_index.zip download successfully!"
-            unzip -d ~/domains/$domain/public_html search_index.zip 2>&1 > /dev/null 
+            unzip -d ~/domains/$DOMAIN/public_html search_index.zip 2>&1 > /dev/null 
         else
             red "search_index.zip download failed!"
         fi
@@ -142,112 +96,82 @@ hysteria_download() {
         return 1
     else
         green "download hysteria!"
-        wget -q https://github.com/apernet/hysteria/releases/download/app%2Fv2.5.1/hysteria-freebsd-amd64 2>&1 > /dev/null 
-        mv hysteria-freebsd-amd64 hysteria
-        chmod u+x hysteria
+        wget -q -P $HYSTERIA_WORKDIR https://github.com/apernet/hysteria/releases/download/app%2Fv2.5.1/hysteria-freebsd-amd64 2>&1 > /dev/null 
+        mv $HYSTERIA_WORKDIR/hysteria-freebsd-amd64 $HYSTERIA_WORKDIR/hysteria
+        chmod u+x $HYSTERIA_WORKDIR/hysteria
     fi
 }
 
+generate_cert () {
+   openssl req -x509 -nodes -newkey ec:<(openssl ecparam -name prime256v1) -keyout $HYSTERIA_WORKDIR/server.key -out $HYSTERIA_WORKDIR/server.crt -subj "/CN=bing.com" -days 36500 
+}
+
 yaml_file() {
-    cat >~/config.yaml <<EOF
-# Hysteria 配置
-server:
-  listen: :$UDP_PORT
+cat > $HYSTERIA_WORKDIR/config.yaml <<EOF
+listen: :$UDP_PORT
 
-  tls:
-    cert: $TLS_CERT
-    key: $TLS_KEY
+tls:
+  cert: $HYSTERIA_WORKDIR/server.crt
+  key: $HYSTERIA_WORKDIR/server.key
 
-  auth:
-    type: password
-    password: "$HYSTERIA_PASS"
+auth:
+  type: password
+  password: "$HYSTERIA_PASS"
 
-  fastOpen: true
+fastOpen: true
 
-  masquerade:
-    type: proxy
-    proxy:
-      url: $HYSTERIA_URL
-      rewriteHost: true
+masquerade:
+  type: proxy
+  proxy:
+    url: https://bing.com
+    rewriteHost: true
 
-  transport:
-    udp:
-      hopInterval: 30s
-
-# SOCKS5 配置
-log:
-  access: /dev/null
-  error: /dev/null
-  loglevel: none
-
-inbounds:
-  - port: $TCP_PORT
-    protocol: socks
-    tag: socks
-    settings:
-      auth: password
-      udp: false
-      ip: 0.0.0.0
-      userLevel: 0
-      accounts:
-        - user: $SOCKS5_USER
-          pass: $SOCKS5_PASS
-
-outbounds:
-  - tag: direct
-    protocol: freedom
+transport:
+  udp:
+    hopInterval: 30s
 
 EOF
 }
 
 url_generate() {
-    hysteria2="hysteria2://$HYSTERIA_PASS@$web_ip:$UDP_PORT/?insecure=false&auth=password&protocol=udp&obfs=plain&sni=$HYSTERIA_URL"
-    socks5="socks5://$SOCKS5_USER:$SOCKS5_PASS@$web_ip:$TCP_PORT"
-    green "hysteria2: " $hysteria2
-    green "socks5: " $socks5
+    hysteria2="hysteria2://$HYSTERIA_PASS@$SERVER_IP:$UDP_PORT/?sni=www.bing.com&alpn=h3&insecure=1#$DOMAIN"
+    green "hysteria2: " $hysteria2 > $HYSTERIA_WORKDIR/url.txt
 }
+
+add_crontab_task() {
+  crontab -l > /tmp/crontab.bak
+  echo "*/30 * * * * . ~/smail2" >> /tmp/crontab.bak
+  crontab /tmp/crontab.bak
+  rm /tmp/crontab.bak
+}
+
+
 
 main() {
-    if [ -z $1 ]; then
-        reading "please input your domain : " domain
+    if [ -z $1 ]
+    then
+        reading "please input your email : " email
     else
-        domain="$1"
+        email="$1"
     fi
 
-    if [ -z $domain ]; then
-        red "please input your domain!"
-        exit 1
+    if [ -z $domain ]
+    then
+        yellow "Your Hysteria2 URL will not be sent to your email!"
+        return 1
     fi
 
-    serv00_ip
 
-    yellow "The DNS A record are being verified, please later... :  $domain "
+    green "Now deployment begins ..."
+    check_port
+    copy_website
+    hysteria_download
+    generate_cert
+    yaml_file
+    url_generate
+    green "$hysteria2" "\n" | mail -s "$domain sub" $email
+    nohup $HYSTERIA_WORKDIR/hysteria server -c $HYSTERIA_WORKDIR/config.yaml & disown %1
 
-    dns_a_ip=$(host $domain | awk '{print $4}')
-
-    if [ -n "$dns_a_ip" ] && [ "$dns_a_ip" = "$web_ip" ]; then
-        green " $domain is ready!"
-        check_port
-        set_website
-        set_cert
-        copy_cert
-        copy_website
-        hysteria_download
-        yaml_file
-        url_generate
-        echo -e "$hysteria2" "\n" "$socks5" | mail -s "$domain sub" $EMAIL
-        nohup ~/hysteria server -c ~/config.yaml & disown %1
-
-    else
-        red "Error: $domain is not ready!"
-        red "Please add A record in your DNS record, point to the direction."
-        printf -- "♦%.s" {1..50}
-        echo
-        yellow "\t A \t host \t $web_ip "
-        printf -- "♦%.s" {1..50}
-        echo
-
-    fi
 }
 
-main $1
+main
