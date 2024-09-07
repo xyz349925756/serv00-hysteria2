@@ -144,7 +144,7 @@ add_crontab_task() {
   echo "@reboot nohup $HYSTERIA_WORKDIR/hysteria server -c $HYSTERIA_WORKDIR/config.yaml & disown %1" > /tmp/crontab.bak
   echo "*/30 * * * * . ~/smail2" >> /tmp/crontab.bak
   crontab /tmp/crontab.bak
-  rm /tmp/crontab.bak
+#   rm /tmp/crontab.bak
 }
 
 
