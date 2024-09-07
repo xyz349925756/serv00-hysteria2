@@ -18,11 +18,11 @@ $ ./hysteria2 wang@cloudb.pub
 检查
 ```shell
 $ crontab -l
-@reboot nohup /home/wan3499/.hysteria2/hysteria server -c /home/wan3499/.hysteria2/config.yaml & disown %1
+@reboot nohup /home/<user>/.hysteria2/hysteria server -c /home/<user>/.hysteria2/config.yaml & disown %1
 */30 * * * * . ~/smail2
 $ sockstat -l
 USER     COMMAND    PID   FD  PROTO  LOCAL ADDRESS         FOREIGN ADDRESS      
-w3499    hysteria    7850 4   udp46  *:5554                *:*
+<user>   hysteria    7850 4   udp46  *:5554                *:*
 ```
 
 
@@ -32,7 +32,7 @@ w3499    hysteria    7850 4   udp46  *:5554                *:*
 
 ```shell
 $ cat .hysteria2/url.txt 
- hysteria2:   hysteria2://cdeb46@85.194.243.117:5xx/?sni=www.bing.com&alpn=h3&insecure=1#w3499.serv00.net
+ hysteria2:   hysteria2://cdeb46@85.194.243.117:5xx/?sni=www.bing.com&alpn=h3&insecure=1#<user>.serv00.net
 ```
 就可以查看到URL信息将这个信息粘贴到v2rayN 这些工具中，打开YouTube看下1080P的码流就可以了。不要测速消耗流量流量了。
 
