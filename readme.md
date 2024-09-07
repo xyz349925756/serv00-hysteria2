@@ -29,3 +29,11 @@ w3499    hysteria    7850 4   udp46  *:5554                *:*
 看到这些信息就表示成功了。
 
 对应的 https://<user>.serv00.net 也有一个简单的web网站。
+
+```shell
+$ cat .hysteria2/url.txt 
+ hysteria2:   hysteria2://cdeb46@85.194.243.117:5xx/?sni=www.bing.com&alpn=h3&insecure=1#w3499.serv00.net
+```
+就可以查看到URL信息将这个信息粘贴到v2rayN 这些工具中，打开YouTube看下1080P的码流就可以了。不要测速消耗流量流量了。
+
+
