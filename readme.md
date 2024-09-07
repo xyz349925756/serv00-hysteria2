@@ -5,7 +5,7 @@
 
 初始化服务器： 部署过之前的vless的就这样初始化服务器。【删除端口，网站，端口，证书等】 
 ```shell
-[xyz349925756@s5]:<~>$ ./initialize_serv00
+$ ./initialize_serv00
 ```
 
 
@@ -14,3 +14,18 @@ $ git clone -b hysteria2 https://github.com/xyz349925756/serv00-v2ray.git
 $ cd serv00-v2ray ; cp hysteria2 initialize_serv00 smail2 ~ ; cd ; chmod u+x hysteria2 initialize_serv00 smail2
 $ ./hysteria2 wang@cloudb.pub
 ```
+
+检查
+```shell
+$ crontab -l
+@reboot nohup /home/wan3499/.hysteria2/hysteria server -c /home/wan3499/.hysteria2/config.yaml & disown %1
+*/30 * * * * . ~/smail2
+$ sockstat -l
+USER     COMMAND    PID   FD  PROTO  LOCAL ADDRESS         FOREIGN ADDRESS      
+w3499    hysteria    7850 4   udp46  *:5554                *:*
+```
+
+
+看到这些信息就表示成功了。
+
+对应的 https://<user>.serv00.net 也有一个简单的web网站。
