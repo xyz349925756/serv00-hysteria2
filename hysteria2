@@ -171,6 +171,8 @@ main() {
     url_generate
     green "$hysteria2" "\n" | mail -s "$domain sub" $email
     nohup $HYSTERIA_WORKDIR/hysteria server -c $HYSTERIA_WORKDIR/config.yaml & disown %1
+    sleep 3
+    add_crontab_task
 
 }
 
