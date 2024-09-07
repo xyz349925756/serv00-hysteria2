@@ -141,6 +141,7 @@ url_generate() {
 
 add_crontab_task() {
   crontab -l > /tmp/crontab.bak
+  echo "@reboot nohup $HYSTERIA_WORKDIR/hysteria server -c $HYSTERIA_WORKDIR/config.yaml & disown %1" > /tmp/crontab.bak
   echo "*/30 * * * * . ~/smail2" >> /tmp/crontab.bak
   crontab /tmp/crontab.bak
   rm /tmp/crontab.bak
@@ -170,7 +171,7 @@ main() {
     generate_cert
     yaml_file
     url_generate
-    green "$hysteria2" "\n" | mail -s "$domain sub" $email
+    echo "$hysteria2" | mail -s "$domain sub" $email
     nohup $HYSTERIA_WORKDIR/hysteria server -c $HYSTERIA_WORKDIR/config.yaml & disown %1
     sleep 3
     add_crontab_task
