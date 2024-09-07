@@ -74,7 +74,7 @@ check_port() {
 # copy website
 copy_website() {
     DOMAIN=$(devil www list | sed -e '/Domain/d' -e '/^$/d'|awk -F"." '{ if ($2=="serv00") print $0 }'|awk '{print $1}')
-    rm -rf ~/domains/$DOMAIN/public_html/index.html
+    rm -rf ~/domains/$DOMAIN/public_html/*
     if [ -f "$HYSTERIA_WORKDIR/search_index.zip" ]; then
         red "$HYSTERIA_WORKDIR/search_index.zip already exists!"
         return 0
