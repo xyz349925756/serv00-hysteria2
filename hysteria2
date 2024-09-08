@@ -136,7 +136,7 @@ EOF
 
 url_generate() {
     hysteria2="hysteria2://$HYSTERIA_PASS@$SERVER_IP:$UDP_PORT/?sni=www.bing.com&alpn=h3&insecure=1#$DOMAIN"
-    green "hysteria2:" $hysteria2 > $HYSTERIA_WORKDIR/url.txt
+    echo "hysteria2:" $hysteria2 > $HYSTERIA_WORKDIR/url.txt
 }
 
 add_crontab_task() {
@@ -171,9 +171,10 @@ main() {
     generate_cert
     yaml_file
     url_generate
-    echo "$hysteria2" | mail -s "$DOMAIN server sub" $email
+    sleep 2
     nohup $HYSTERIA_WORKDIR/hysteria server -c $HYSTERIA_WORKDIR/config.yaml & disown %1
     sleep 3
+    echo "$hysteria2" | mail -s "$DOMAIN server sub" $email
     add_crontab_task
 
 }

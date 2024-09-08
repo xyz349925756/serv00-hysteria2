@@ -80,3 +80,17 @@ hysteria2部署脚本中邮箱要填写自己的！！！
 订阅连接就是： https://<user>.serv00.net/sub.txt 
 
 自己操作这里不提供订阅链接。
+
+
+## 排查问题是使用到的命令
+```shell
+crontab -l    # 查看计划任务是否已经设置成功
+
+kill `sockstat -l|sed "/USER/d"|awk '{print $3}'` 2> /dev/null   # 杀死进程
+
+nohup ~/.hysteria2/hysteria server -c ~/.hysteria2/config.yaml & disown %1   # 手动启动服务
+
+DOMAIN=$(devil www list | sed -e '/Domain/d' -e '/^$/d'|awk -F"." '{ if ($2=="serv00") print $0 }'|awk '{print $1}') # 设置域名
+
+cat .hysteria2/url.txt | mail -s "$DOMAIN server sub" <email>  # 将订阅信息发送到email。
+```
