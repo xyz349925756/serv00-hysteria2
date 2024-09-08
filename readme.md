@@ -4,6 +4,7 @@
 > [!tip]
 >
 > 在 serv00 上使用其他协议已经被精准识别到了。现在还有 hysteria2 目前还是用正常。另外分支vless trojan 这些协议每天上午可用，下午网速都被 hysteria2 抢去了，下午基本不能使用。socks5 一样的情况。
+> 要使用 vless 选择分支 main 。
 
 ## 初始化
 初始化服务器： 部署过之前的vless的就这样初始化服务器。【删除端口，网站，端口，证书等】 
@@ -38,7 +39,7 @@ USER     COMMAND    PID   FD  PROTO  LOCAL ADDRESS         FOREIGN ADDRESS
 
 看到这些信息就表示成功了。下面的了解即可。
 
-对应的 https://<user>.serv00.net 也有一个简单的web网站。
+对应的 https://user.serv00.net 也有一个简单的web网站。
 
 ## 通用URL
 
