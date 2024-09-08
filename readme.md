@@ -10,6 +10,14 @@
 ```shell
 $ ./initialize_serv00
 ```
+> [!note]
+>
+> 如果是第一次使用一定要打开执行脚本权限 
+>
+> 在ssh中执行 devil binexec on 
+>
+> 执行完成关闭 ssh 再使用 ssh 登入服务器
+
 
 ## 使用
 ```shell
@@ -28,8 +36,7 @@ USER     COMMAND    PID   FD  PROTO  LOCAL ADDRESS         FOREIGN ADDRESS
 <user>   hysteria    7850 4   udp46  *:5554                *:*
 ```
 
-
-看到这些信息就表示成功了。
+看到这些信息就表示成功了。下面的了解即可。
 
 对应的 https://<user>.serv00.net 也有一个简单的web网站。
 
@@ -41,7 +48,7 @@ $ cat .hysteria2/url.txt
 ```
 这些已经在脚本中集成了。
 
-就可以查看到URL信息将这个信息粘贴到v2rayN 这些工具中，打开YouTube看下1080P的码流就可以了。不要测速消耗流量流量了。
+就可以查看到URL信息将这个信息粘贴到v2rayN 这些工具中，打开YouTube看下1080P的码流就可以了。不要测速消耗流量了。
 
 ## 计划任务
 默认脚本中已经添加了两条计划任务
@@ -59,7 +66,7 @@ email 是serv00 自带的。在脚本中修改成自己的 email 告警即可。
 
 hysteria2部署脚本中邮箱要填写自己的！！！
 
-<font color="red">注意：请勿用于非法业务，否则后果自负！</font>
+# 注意：请勿用于非法业务，否则后果自负！
 
 
 
