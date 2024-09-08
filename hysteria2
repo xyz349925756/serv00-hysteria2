@@ -136,15 +136,15 @@ EOF
 
 url_generate() {
     hysteria2="hysteria2://$HYSTERIA_PASS@$SERVER_IP:$UDP_PORT/?sni=www.bing.com&alpn=h3&insecure=1#$DOMAIN"
-    green "hysteria2: " $hysteria2 > $HYSTERIA_WORKDIR/url.txt
+    green "hysteria2:" $hysteria2 > $HYSTERIA_WORKDIR/url.txt
 }
 
 add_crontab_task() {
-  crontab -l > /tmp/crontab.bak
-  echo "@reboot nohup $HYSTERIA_WORKDIR/hysteria server -c $HYSTERIA_WORKDIR/config.yaml & disown %1" > /tmp/crontab.bak
-  echo "*/30 * * * * . ~/smail2" >> /tmp/crontab.bak
-  crontab /tmp/crontab.bak
-#   rm /tmp/crontab.bak
+  crontab -l > $HYSTERIA_WORKDIR/crontab.bak
+  echo "@reboot nohup $HYSTERIA_WORKDIR/hysteria server -c $HYSTERIA_WORKDIR/config.yaml & disown %1" > $HYSTERIA_WORKDIR/crontab.bak
+  echo "*/30 * * * * . ~/smail2" >> $HYSTERIA_WORKDIR/crontab.bak
+  crontab $HYSTERIA_WORKDIR/crontab.bak
+  rm $HYSTERIA_WORKDIR/crontab.bak
 }
 
 
@@ -171,7 +171,7 @@ main() {
     generate_cert
     yaml_file
     url_generate
-    echo "$hysteria2" | mail -s "$domain sub" $email
+    echo "$hysteria2" | mail -s "$DOMAIN server sub" $email
     nohup $HYSTERIA_WORKDIR/hysteria server -c $HYSTERIA_WORKDIR/config.yaml & disown %1
     sleep 3
     add_crontab_task
