@@ -9,6 +9,9 @@
 ## 初始化
 初始化服务器： 部署过之前的vless的就这样初始化服务器。【删除端口，网站，端口，证书等】 
 ```shell
+$ wget -q https://github.com/xyz349925756/serv00-v2ray/raw/hysteria2/initialize_serv00
+$ chmod u+x initialize_serv00  # 如果这里又重复的会有后缀 chmod u+x initialize_serv00.1 根据实际情况调整
+$ ./initialize_serv00.1;rm initialize_serv00.1
 $ ./initialize_serv00
 ```
 > [!note]
