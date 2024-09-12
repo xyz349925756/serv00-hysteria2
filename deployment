@@ -1,0 +1,487 @@
+#!/bin/bash
+
+# create "vless + tcp + tls" "vless + ws + tls" "trojan + tcp + tls" in the serv00 vps.
+
+email="wang@cloudb.pub"
+serv_ip () {
+	# 提取服务器 web ip
+	hostname=$(uname -n|awk -F"." '{print $1}')
+	hosts=(s1 s2 s3 s4 s5 s6 s7 s8 s9 s10 s11 s12 s13 s14 s15)
+	web_host=$(uname -n|awk 'BEGIN{FS="."}; {print $1}'|sed 's/s/web/')
+
+	for i in ${hosts[@]}
+	do 
+	  if [ "$i" = "$hostname" ]
+	  then
+	   	web_ip=$(devil vhost list | grep -w $web_host | awk '{print $1}')
+		echo -e "web ip is : \033[32m $web_ip \033[0m"
+	  fi
+    done
+}
+
+add_port() {
+	# creat port
+	local count=3
+
+	a=$(devil port list | sed -e '/Port/d' -e '/^$/d' | awk '$1 ~ /[0-9]+/ {print $1}' | wc -l|awk '{print $1}')
+	#echo -e "Exist \033[34m $a \033[0m ports!"
+
+	if [ $a -le $count ]
+	then
+		num=$((count - a))
+		echo -e "There are already \033[34m $a \033[0m ports ready, please continue the operation!"
+		
+		for ((i = 0; i < $num; i++))
+		do
+			devil port add tcp Random
+			((count -= 1))
+		done
+	    # for i in `devil port list|sed -e '/Port/d' -e '/^$/d' | awk '{print $1}'`;do devil port del tcp $i ;done     
+	fi
+}
+
+
+set_port() {
+	# bind port
+	local count=0
+	ports=$(devil port list | sed -e '/Port/d' -e '/^$/d' | awk '$1 ~ /[0-9]+/ {print $1}')
+	for i in ${ports[@]}
+	do
+	   ports[$count]=$i
+	   ((count += 1))
+	done
+}
+
+set_website() {
+	# check website
+	echo "Check the website, please later..."
+	domains=$(devil www list | sed -e '/Domain/d' -e '/^$/d'|awk '{print $1}')
+	for i in ${domains[@]}
+	do 
+	   if [ "$i" = "$domain" ]
+	   then
+	   		echo -e "The domain \033[31m $i \033[0m already exists."
+			return 0
+	   else
+	        echo "Create a website, please later..."
+			devil www add $domain php
+	   fi
+	   # devil www del `devil www list|sed -e '/Domain/d' -e '/^$/d'|awk '{print $1}'|grep -v 'serv00.net'`
+	done
+}
+
+set_cert() {
+	# check cert
+	echo "Check the SSL certificate, please later..." 
+	ssls=$(devil ssl www list | sed -e '/^$/d'|awk 'NR>5 {print $1}')
+	for i in ${ssls[@]}
+	do
+	    if [ "$i" = "$domain" ]
+	    then
+	   		echo -e "The domain \033[31m $i \033[0m ssl certificate already exists."
+			return 0
+	    else
+			echo "Create the SSL certificate, please later..."
+			devil ssl www add $web_ip le le $domain
+		fi
+		# devil ssl www del `devil ssl www list|sed -e '/^$/d'|awk 'NR>5 {print $6,$1}'`
+	done
+}
+
+copy_cert() {
+	# Copy certificate to cert directory
+	echo -e "\033[43;35mDownload the SSL certificate, please input your ssh password!\033[0m"
+    devil ssl www get `devil ssl www list | sed -e '/^$/d' | awk 'NR>5 {print $6,$1}'` > cret.txt
+	if [ $? -eq 0 ]
+	then
+	  echo -e "\033[32mDownload successfully!\033[0m"
+	  mkdir -p cert
+	  awk '/-----BEGIN CERTIFICATE-----/,/-----END CERTIFICATE-----/' cret.txt > ./cert/cert.pem
+	  awk '/-----BEGIN PRIVATE KEY-----/,/-----END PRIVATE KEY-----/' cret.txt > ./cert/cert.key
+	  # When generating SSL, it is automatically added to the website configuration. No need to add it here
+	  # devil ssl www add 128.204.223.98 ./cert/cert.pem ./cert/cert.key w3499.0256.cloudns.ch
+	  return 0
+	else
+	  echo -e "\033[31mDownload failed!\033[0m"
+	fi
+}
+
+copy_website() {
+	# # copy website
+    rm -rf ~/domains/$domain/public_html/index.html
+	
+    if [ -f "search_index.zip" ]
+    then
+        echo -e "\033[32m[Info]:\033[0m search_index.zip already exists!\033[0m"
+        # unzip -d ~/domains/$domain/public_html search_index.zip 2>&1 >search_index.log
+        return 0
+    else
+        echo -e "\033[32m[Info]:\033[0m download search_index.zip..."
+        wget https://github.com/xyz349925756/search_index/releases/download/5.0/search_index.zip
+        if [ $? -eq 0 ]
+        then
+            echo -e "\033[32m[Info]:\033[0m search_index.zip download successfully!\033[0m"
+            unzip -d ~/domains/$domain/public_html search_index.zip 2>&1 >search_index.log
+        else
+            echo -e "\033[31m[Info]:\033[0m search_index.zip download failed!\033[0m"
+        fi
+    fi
+
+
+}
+
+v2ray_dir() {
+    # uzip v2ray file
+	if [ -d "v2ray" ]
+	then
+		echo -e "\033[32m[Info]:\033[0m v2ray folder exists!\033[0m"
+        # unzip -d v2ray v2ray-freebsd-64.zip
+        return 0
+	else
+        mkdir v2ray 
+		unzip -d v2ray v2ray-freebsd-64.zip
+	fi
+}
+
+v2ray_download() {
+	# v2ray: https://github.com/v2fly/v2ray-core/releases/download/v5.16.1/v2ray-freebsd-64.zip
+	echo -e "\033[32m[Info]:\033[0m Official website: https://github.com/v2fly/v2ray-core/releases "
+	# read -t 30 -p "please input your v2ray download url [wait 30 seconds]: " v2ray_download_url
+	# echo
+    if [ -f "v2ray-freebsd-64.zip" ]
+	then
+	    echo -e "\033[32m[Info]:\033[0m v2ray-freebsd-64.zip already exists!\033[0m"
+		return 0
+	else
+        echo -e "\033[32m[Info]:\033[0m download v2ray!"
+        wget https://github.com/v2fly/v2ray-core/releases/download/v5.17.1/v2ray-freebsd-64.zip 2>&1 >v2ray.log
+        v2ray_dir
+	fi	
+
+}
+
+
+########################################################################
+#              main code
+########################################################################
+
+if [ -z $1 ]
+then
+    read -p "please input your domain : " domain
+else
+    domain="$1"
+fi
+
+if [ -z $domain ]
+then
+	echo -e "\033[31m[Error]:\033[0m please input your domain!"
+	exit 1
+fi
+
+echo -e "The DNS A record are being verified, please later... : \033[31m $domain \033[0m"
+
+
+dns_a_ip=$(host $domain | awk '{print $4}')
+
+serv_ip
+
+# if [ -n "$web_status" ] && [ "$web_status" -eq 200 ]
+if [ -n "$dns_a_ip" ] && [ "$dns_a_ip" = "$web_ip" ]
+then
+	echo -e "\033[32m $domain \033[0m is Good！"
+	
+	# add port
+    add_port
+
+	# bind port
+	set_port
+    
+	port1=${ports[0]}
+	port2=${ports[1]}
+	port3=${ports[2]}
+
+	uuid1=$(uuidgen)
+	uuid2=$(uuidgen)
+
+    user=$(whoami)
+	email="xyz349925756@gmail.com"
+	cert_pem="/home/$user/cert/cert.pem"
+	cert_key="/home/$user/cert/cert.key"
+	passwd="trojan"
+
+
+    # set website
+	set_website
+
+	# creat certificate
+	set_cert
+
+	# copy certificate
+	copy_cert
+   
+    # download website file
+	copy_website
+
+	# download v2ray|xray file
+    v2ray_download
+
+
+
+    # create config file
+cat > v2ray/config.json <<EOF
+{
+"log": {
+    "loglevel": "warning"
+},
+"inbounds": [
+    {
+        "port": $port1,
+        "protocol": "vless",
+        "settings": {
+            "clients": [
+                {
+                    "id": "$uuid1", // 填写你的 UUID
+                    "level": 0,
+                    "email": "$email"
+                }
+            ],
+            "decryption": "none",
+            "fallbacks": [
+                {
+                    "dest": 80
+                },
+                {
+                    "path": "/websocket", // 必须换成自定义的 PATH
+                    "dest": $port2,
+                    "xver": 1
+                }
+            ]
+        },
+        "streamSettings": {
+            "network": "tcp",
+            "security": "tls",
+            "tlsSettings": {
+                "alpn": [
+                    "http/1.1"
+                ],
+                "certificates": [
+                    {
+                        "certificateFile": "$cert_pem", // 换成你的证书，绝对路径
+                        "keyFile": "$cert_key" // 换成你的私钥，绝对路径
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "port": $port2,
+        "listen": "0.0.0.0",
+        "protocol": "vless",
+        "settings": {
+            "clients": [
+                {
+                    "id": "$uuid2", // 填写你的 UUID
+                    "level": 0,
+                    "email": "$email"
+                }
+            ],
+            "decryption": "none"
+        },
+        "streamSettings": {
+            "network": "ws",
+            "security": "tls",
+            "tlsSettings": {
+                "alpn": [
+                    "http/1.1"
+                ],
+                "certificates": [
+                    {
+                        "certificateFile": "$cert_pem", // 换成你的证书，绝对路径
+                        "keyFile": "$cert_key" // 换成你的私钥，绝对路径
+                    }
+                ]
+            },
+            "wsSettings": {
+                //"acceptProxyProtocol": true, // 提醒：若你用 Nginx/Caddy 等反代 WS，需要删掉这行
+                "path": "/websocket" // 必须换成自定义的 PATH，需要和上面的一致
+            }
+        }
+    },
+    {
+        "port": $port3,
+        "protocol": "trojan",
+        "settings": {
+            "clients": [
+                {
+                    "password":"$passwd",
+                    "email": "$email"
+                }
+            ]
+        },
+        "streamSettings": {
+            "network": "tcp",
+            "security": "tls",
+            "tlsSettings": {
+                "alpn": [
+                    "http/1.1"
+                ],
+                "certificates": [
+                    {
+                        "certificateFile": "$cert_pem",
+                        "keyFile": "$cert_key"
+                    }
+                ]
+            }
+        }
+    }
+],
+"outbounds": [
+    {
+        "protocol": "freedom"
+    }
+]
+}
+EOF
+
+
+    url1="vless://$uuid2@$domain:$port2?encryption=none&security=tls&sni=$domain&alpn=http%2F1.1&type=ws&host=$domain&path=%2Fwebsocket#$user-ws"
+    url2="vless://$uuid1@$domain:$port1?encryption=none&security=tls&sni=$domain&alpn=http%2F1.1&type=tcp&headerType=none&host=$domain#$user-tcp"
+    url3="trojan://$passwd@$domain:$port3?security=tls&sni=$domain&alpn=http%2F1.1&type=tcp&headerType=none&host=$domain#$user-trojan"
+
+cat > ~/domains/$domain/public_html/sub.txt <<EOF
+$url1
+$url2
+$url3
+EOF
+
+cat ~/domains/$domain/public_html/sub.txt | mail -s "$domain sub" $email
+
+
+cat > ~/domains/$domain/public_html/panel.html <<EOF
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>$domain URL V2ray</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 80%;
+            width: 100%;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .url-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .url-container h3 {
+            flex-shrink: 0;
+            margin-right: 10px;
+            font-size: 16px;
+            color: #555;
+            width: 150px;
+        }
+        input[type="text"] {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            background-color: #007bff;
+            color: #fff;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .success-message {
+            display: none;
+            color: green;
+            margin-top: 20px;
+            text-align: center;
+            font-size: 14px;
+        }
+    </style>
+    <script>
+        function copyToClipboard(elementId) {
+            var copyText = document.getElementById(elementId).value;
+            navigator.clipboard.writeText(copyText).then(function() {
+                var successMessage = document.getElementById('success-message');
+                successMessage.style.display = 'block';
+                setTimeout(function() {
+                    successMessage.style.display = 'none';
+                }, 2000);
+            }, function(err) {
+                console.error('Error copying text: ', err);
+            });
+        }
+    </script>
+</head>
+<body>
+
+    <div class="container">
+        <h1>$domain URL V2ray</h1>
+        <div class="url-container">
+            <h3>vless + ws + tls: </h3>
+            <input type="text" id="url1" value="$url1" readonly>
+            <button onclick="copyToClipboard('url1')">复制</button>
+        </div>
+
+        <div class="url-container">
+            <h3>vless + tcp + tls: </h3>
+            <input type="text" id="url2" value="$url2" readonly>
+            <button onclick="copyToClipboard('url2')">复制</button>
+        </div>
+
+        <div class="url-container">
+            <h3>trojan + tcp + tls: </h3>
+            <input type="text" id="url3" value="$url3" readonly>
+            <button onclick="copyToClipboard('url3')">复制</button>
+        </div>
+
+        <div id="success-message" class="success-message">
+            URL 已复制到剪贴板！
+        </div>
+    </div>
+
+</body>
+</html>
+EOF
+
+    nohup ~/v2ray/v2ray run & disown %1
+
+
+else
+    echo -e "\033[31m[Error]: \033[0m  \033[36m $domain \033[0m \033[31m is not match!\033[0m" 
+    echo -e "\033[31mPlease add A record in your DNS record, point to the direction\033[0m"
+	printf -- "|%.s" {1..50};echo
+	echo -e "\033[33m A \t host \t $web_ip \033[0m"
+	printf -- "|%.s" {1..50};echo
+    
+fi
