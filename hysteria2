@@ -1,0 +1,182 @@
+#!/bin/bash
+
+# variable
+SERVER_IP=$(curl -s ifconfig.me)
+HYSTERIA_PASS=$(uuidgen | tr -d '-')
+
+HYSTERIA_WORKDIR=~/.hysteria2
+
+[ ! -d $HYSTERIA_WORKDIR ] && mkdir -p $HYSTERIA_WORKDIR
+
+# color function
+red() {
+    echo -e "\e[1;91m $1 \033[0m" $2
+}
+yellow() {
+    echo -e "\e[1;33m $1 \033[0m" $2
+}
+
+green() {
+    echo -e "\e[1;32m $1 \033[0m" $2
+}
+
+reading() {
+    read -p "$(yellow "$1")" "$2"
+}
+
+add_udp_port() {
+    devil port add udp Random 2>&1 > /dev/null 
+    sleep 1
+    udp_port=$(devil port list | sed -e "/Port/d" -e "/^$/d" | awk '{ if ($2=="udp") print $1}')
+    echo $udp_port
+}
+
+del_port(){
+    ports=$(devil port list|sed -e '/^$/d' -e '/Port/d'|awk '{print $1}')
+    ports_num=$(devil port list|sed -e '/^$/d' -e '/Port/d'|wc -l)
+    if [ "`devil port list|sed -e '/^$/d' -e '/Port/d'|awk '{print $1}'`" = "No" ]
+    then
+        echo "The port is empty!"
+        return 0
+    else    
+        for i in ${ports[@]}
+        do
+            devil port del tcp $i 2> /dev/null
+            devil port del udp $i 2> /dev/null
+        done
+    fi
+}
+
+# check port
+check_port() {
+    a=$(devil port list | sed -e '/Port/d' -e '/^$/d' | awk '$1 ~ /[0-9]+/ {print $1}' | wc -l)
+    if [ $a -eq 0 ]; then
+        UDP_PORT=$(add_udp_port)
+        green "UDP_PORT: " $UDP_PORT
+    else
+        red "Already existing ports: " $(devil port list | sed -e '/Port/d' -e '/^$/d')
+        red "You need to delete them now!"
+        read -n 1 -p "Please input your choice [y/n]: " answer
+        case $answer in
+        Y|y) echo
+                echo -e "Delete the port please later ..."
+                del_port
+                ;;
+        N|n) echo
+                echo "Aborted, please re-execute the script."
+                exit;;
+        esac
+        exit 1
+    fi
+}
+
+
+# copy website
+copy_website() {
+    DOMAIN=$(devil www list | sed -e '/Domain/d' -e '/^$/d'|awk -F"." '{ if ($2=="serv00") print $0 }'|awk '{print $1}')
+    rm -rf ~/domains/$DOMAIN/public_html/*
+    if [ -f "$HYSTERIA_WORKDIR/search_index.zip" ]; then
+        red "$HYSTERIA_WORKDIR/search_index.zip already exists!"
+        return 0
+    else
+        green "download search_index.zip..."
+        wget -q -P $HYSTERIA_WORKDIR https://github.com/xyz349925756/search_index/releases/download/5.0/search_index.zip 2>&1 > /dev/null 
+        if [ $? -eq 0 ]; then
+            green "search_index.zip download successfully!"
+            unzip -d ~/domains/$DOMAIN/public_html $HYSTERIA_WORKDIR/search_index.zip 2>&1 > /dev/null 
+        else
+            red "search_index.zip download failed!"
+        fi
+    fi
+}
+
+# download hysteria
+hysteria_download() {
+    if [ -f "hysteria" ]; then
+        red "hysteria already exists!"
+        return 1
+    else
+        green "download hysteria!"
+        wget -q -P $HYSTERIA_WORKDIR https://github.com/apernet/hysteria/releases/download/app%2Fv2.5.1/hysteria-freebsd-amd64 2>&1 > /dev/null 
+        mv $HYSTERIA_WORKDIR/hysteria-freebsd-amd64 $HYSTERIA_WORKDIR/hysteria
+        chmod u+x $HYSTERIA_WORKDIR/hysteria
+    fi
+}
+
+generate_cert () {
+   openssl req -x509 -nodes -newkey ec:<(openssl ecparam -name prime256v1) -keyout $HYSTERIA_WORKDIR/server.key -out $HYSTERIA_WORKDIR/server.crt -subj "/CN=bing.com" -days 36500 
+}
+
+yaml_file() {
+cat > $HYSTERIA_WORKDIR/config.yaml <<EOF
+listen: :$UDP_PORT
+
+tls:
+  cert: $HYSTERIA_WORKDIR/server.crt
+  key: $HYSTERIA_WORKDIR/server.key
+
+auth:
+  type: password
+  password: "$HYSTERIA_PASS"
+
+fastOpen: true
+
+masquerade:
+  type: proxy
+  proxy:
+    url: https://bing.com
+    rewriteHost: true
+
+transport:
+  udp:
+    hopInterval: 30s
+
+EOF
+}
+
+url_generate() {
+    hysteria2="hysteria2://$HYSTERIA_PASS@$SERVER_IP:$UDP_PORT/?sni=www.bing.com&alpn=h3&insecure=1#$DOMAIN"
+    echo "hysteria2:" $hysteria2 > $HYSTERIA_WORKDIR/url.txt
+}
+
+add_crontab_task() {
+  crontab -l > $HYSTERIA_WORKDIR/crontab.bak
+  echo "@reboot nohup $HYSTERIA_WORKDIR/hysteria server -c $HYSTERIA_WORKDIR/config.yaml & disown %1" > $HYSTERIA_WORKDIR/crontab.bak
+  echo "*/30 * * * * . ~/smail2" >> $HYSTERIA_WORKDIR/crontab.bak
+  crontab $HYSTERIA_WORKDIR/crontab.bak
+  rm $HYSTERIA_WORKDIR/crontab.bak
+}
+
+
+
+main() {
+    if [ -z $1 ]
+    then
+        reading "please input your email : " email
+    else
+        email="$1"
+    fi
+
+    if [ -z $email ]
+    then
+        yellow "Your Hysteria2 URL will not be sent to your email!"
+        return 1
+    fi
+
+
+    green "Now deployment begins ..."
+    check_port
+    copy_website
+    hysteria_download
+    generate_cert
+    yaml_file
+    url_generate
+    sleep 2
+    nohup $HYSTERIA_WORKDIR/hysteria server -c $HYSTERIA_WORKDIR/config.yaml & disown %1
+    sleep 3
+    echo "$hysteria2" | mail -s "$DOMAIN server sub" $email
+    add_crontab_task
+
+}
+
+main $1

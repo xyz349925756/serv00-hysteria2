@@ -1,234 +1,96 @@
----
-title: readme
-markmap: 
-  htmlParser: 
-    selector: h1,h2,h3,h4,h5,h6
----
 
 
+# hysteria2
 > [!tip]
 >
-> 使用本脚本部署 vless + tcp +tls , vless + ws + tls , trojan + tcp +tls 。由于中途需要使用到serv00 提供的自动更新证书服务，因此需要输入一次 ssh 密码[可以粘贴]，部署成功后  https://域名/panel.html 是单条 URL ， https://域名/sub.txt 是订阅地址。
-> 这里在部署文件添加了 email 部署完成会发送客户端 URL 到指定的 email 。一定要修改！
-> 多台的直接编辑到一个 sub.txt 文件中放到其中某台的 public_html 目录下即可https://域名/sub.txt。
+> 在 serv00 上使用其他协议已经被精准识别到了。现在还有 hysteria2 目前还是用正常。另外分支vless trojan 这些协议每天上午可用，下午网速都被 hysteria2 抢去了，下午基本不能使用。socks5 一样的情况。
+> 要使用 vless 选择分支 main 。
 
-![image-20240804082535043](./.readme.assets/image-20240804082535043.png)
-
-
-
-# 在 serv00 vps 上部署 v2ray
-
-## 1、开启脚本执行权限
-
-![image-20240731092717967](./.readme.assets/image-20240731092717967.png)
-
-
-
-## 2、DNS准备
-
-https://www.cloudns.net/
-
-申请很简单，不介绍了。添加域名的IP一定要纯，不然会提示IP滥用。换个代理地址就可以了。
-
-创建域点击这里的添加记录
-
-![image-20240801214959474](./.readme.assets/image-20240801214959474.png)
-
-![image-20240801215142149](./.readme.assets/image-20240801215142149.png)
-
-等待这里是这个状态图标的时候就说明已经生效了。
-
-![image-20240801215200563](./.readme.assets/image-20240801215200563.png)
-
-> [!important]
->
-> 如何查看serv00 vps 地址？
->
-> 1.进入serv00 发给你的邮件找到  **Domains and subdomains:**   这里有一个自带的域名。
->
-> 2.打开 运行输入 cmd (或者使用powershell) 输入 ping 域名 .(https://xxx.serv00.net/.)
->
-> 命令输入  ping xxx.serv00.net   返回的信息中找到中括号内的 IP地址 就是你的A记录IP地址。
->
-> 3.如果不会，脚本运行输入你的域名，会提示你当前服务器的IP地址。
-
-
-
-## 3、如何使用？
-
-> [!caution]
->
-> 1. 脚本中的 initialize_serv00 是初始化脚本会删除已经创建好的 website ,port ,ssl cert。如果不是干净的vps 请不要使用该脚本，否则后果自负。
-> 1. 脚本中的 deployment 是部署脚本，需要用户输入 已经添加了A记录的 域名。中途会使用到 serv00 提供的到期自动更证书服务。本脚本中使用的证书是系统提供的【默认90天】，如果到期可以再次执行该脚本。
-
-首先使用 ssh 进入 serv00 vps
-
+## 初始化
+初始化服务器： 部署过之前的vless的就这样初始化服务器。【删除端口，网站，端口，证书等】 
+```shell
+$ wget -q https://github.com/xyz349925756/serv00-hysteria2/raw/hysteria2/initialize_serv00
+$ chmod u+x initialize_serv00  # 如果这里又重复的会有后缀 chmod u+x initialize_serv00.1 根据实际情况调整
+$ ./initialize_serv00.1;rm initialize_serv00.1
+$ ./initialize_serv00
+```
 > [!note]
 >
-> 这里如果不能访问 ssh ,有两种情况
+> 如果是第一次使用一定要打开执行脚本权限 
 >
-> 1. 官网不允许您的IP地址，去这 https://www.serv00.com/ip_unban/ 解锁
-> 2. sx.serv00.com 被墙了。需要其他方法【或者 使用 proxy】
+> 在ssh中执行 devil binexec on 
+>
+> 执行完成关闭 ssh 再使用 ssh 登入服务器
 
+
+## 使用
 ```shell
-# 下载脚本
-[xxx@s5]:<~>$ git clone https://github.com/xyz349925756/serv00-v2ray.git
-[xxx@s5]:<~>$ cd serv00-v2ray/
-[xxx@s5]:<~/serv00-v2ray>$ cp initialize_serv00 ~
-[xxx@s5]:<~/serv00-v2ray>$ cp deployment ~
-[xxx@s5]:<~/serv00-v2ray>$ cd 
-# 添加执行权限
-[xxx@s5]:<~>$ chmod u+x deployment 
-[xxx@s5]:<~>$ chmod u+x initialize_serv00 
+$ git clone -b hysteria2 https://github.com/xyz349925756/serv00-hysteria2.git
+$ cd serv00-v2ray ; cp hysteria2 initialize_serv00 smail2 ~ ; cd ; chmod u+x hysteria2 initialize_serv00 smail2
+$ ./hysteria2 <换成您的email>
 ```
 
-### 3.1、初始化vps
-
-这步操作有其他数据的慎用！！！
-
-![image-20240801224321262](./.readme.assets/image-20240801224321262.png)
-
-> [!caution]
->
-> 三个端口是服务器的上限！如果有其他占用端口的情况可能会出现异常情况。
-
-### 3.2、部署
-
-这里的前提条件就是 域名的A记录一定要设置正确，脚本会使用 `nslookup 域名` 来检测是否设置正确，因为后面的ssl证书也会使用到A记录。
-
-> [!warning]
->
-> 如果第二次部署需要删除进程，具体操作可以参考下面的
-
+## 检查
 ```shell
-[xxx@s5]:<~>$ sockstat -l
+$ crontab -l
+@reboot nohup /home/<user>/.hysteria2/hysteria server -c /home/<user>/.hysteria2/config.yaml & disown %1
+*/30 * * * * . ~/smail2
+$ sockstat -l
 USER     COMMAND    PID   FD  PROTO  LOCAL ADDRESS         FOREIGN ADDRESS      
-xxx  v2ray      74853 7   tcp46  *:36305               *:*
-xxx  v2ray      74853 8   tcp46  *:43934               *:*
-xxx  v2ray      74853 9   tcp46  *:50403               *:*
-[xxx@s5]:<~>$ kill 74853
-[xxx@s5]:<~>$ sockstat -l
-USER     COMMAND    PID   FD  PROTO  LOCAL ADDRESS         FOREIGN ADDRESS      
+<user>   hysteria    7850 4   udp46  *:5554                *:*
 ```
 
-![image-20240801230530613](./.readme.assets/image-20240801230530613.png)
+看到这些信息就表示成功了。下面的了解即可。
 
-![image-20240801230747606](./.readme.assets/image-20240801230747606.png)
+对应的 https://user.serv00.net 也有一个简单的web网站。
+
+## 通用URL
 
 ```shell
-[xxx@s5]:<~>$ ./deployment 
+$ cat .hysteria2/url.txt 
+ hysteria2:   hysteria2://<user>:<password>@<ip>:<port>/?sni=www.bing.com&alpn=h3&insecure=1#<user>.serv00.net
 ```
+这些已经在脚本中集成了。
 
-**其实熟悉之后只需要这个命令就可以完成了。**
+就可以查看到URL信息将这个信息粘贴到v2rayN 这些工具中，打开YouTube看下1080P的码流就可以了。不要测速消耗流量了。
 
-只需要根据上图步骤就可以完成部署。
-
-#### 3.2.1、客户端 URL 获取
-
-##### 3.2.1.1、复制URL
-
-https://xxx/panel.html
-
-这里的 xxx 就是上面你的域名。
-
-![image-20240801231252466](./.readme.assets/image-20240801231252466.png)
-
-现在我们打开 v2rayN 
-
-![image-20240801231407066](./.readme.assets/image-20240801231407066.png)
-
-测试下
-
-![image-20240801231600478](./.readme.assets/image-20240801231600478.png)
-
-激活这个连接
-
-![image-20240801231702123](./.readme.assets/image-20240801231702123.png)
-
-免费的vps 速度肯定有一些限制。比一般小机场好很多了。
-
-##### 3.2.1.2、使用订阅连接
-
-https://xxx/sub.txt
-
-这里的 xxx 是你的域名
-
- ![image-20240801232244146](./.readme.assets/image-20240801232244146.png)
-
-![image-20240801232311584](./.readme.assets/image-20240801232311584.png)
-
-都可以更新。
-
-![image-20240801232426291](./.readme.assets/image-20240801232426291.png)
-
-速度还可以。
-
-### 3.3、计划任务
-
-服务器要添加一条计划任务
-
-![image-20240801232750052](./.readme.assets/image-20240801232750052.png)
-
-到这里基本已经完成了。
-
-
-
-## 4、多台 serv00 VPS怎么操作？
-
-可以使用ssh互信脚本
-
-先登录到 serv00 
-
-每台vps操作
-
+## 计划任务
+默认脚本中已经添加了两条计划任务
 ```shell
-$ ssh-keygen -t rsa       # 生成各自的key文件
-$ ssh-copy-id -i  .ssh/id_rsa.pub xxx@sx.serv00.com
+ "@reboot nohup $HYSTERIA_WORKDIR/hysteria server -c $HYSTERIA_WORKDIR/config.yaml & disown %1" 
+ "*/30 * * * * . ~/smail2" 
 ```
+第一条的意思是：当服务器重启时，hysteria2 会自动启动。
 
-设置完成 ctrl+d 退出 shell 再进入，不然会出现权限不足。
+第二条的意思是：每30分钟执行一次检查一下sockstat。也就是每个小时的0分钟，30分钟执行一次检查。当发现服务商杀进程的时候，就会发送邮件通知。
 
-> [!tip]
->
-> 可以使用 scp 命令将 sub.txt 复制到某一台 vps，然后使用 cat xxx/sub.txt >> xx.txt 文件中。
->
-> 将所有的 serv00 vps  sub.txt 文件都添加到某一台 server 的 ~/domains/你的域名/public_html/
->
-> 文件夹下，这个xx.txt 自己随便命令。使用的时候是 https://xxx/xx.txt 就可以。
+## 邮件告警
+email 是serv00 自带的。在脚本中修改成自己的 email 告警即可。
+有些邮箱收不到，会被认为是骚扰。多换几个邮箱服务商试试。
 
+hysteria2部署脚本中邮箱要填写自己的！！！
 
+# 注意：请勿用于非法业务，否则后果自负！
 
-后面遇到什么问题再添加吧。
+## 订阅连接 
+数量多的可以自己将上面的 url 集中到一个文件中，然后通过这个文件来订阅。
 
-> [!caution]
->
-> 本项目只是一个实验性的脚本开发，用于学术交流。
->
-> 请使用者遵守相关法律法规。请勿违规操作导致封号，与本项目无关。
+譬如： 我将这些 url 放到 sub.txt 文件中,然后将这个文件放到 ~/domains/<user>.serv00.net/public_html/ 目录下。
 
+订阅连接就是： https://<user>.serv00.net/sub.txt 
 
+自己操作这里不提供订阅链接。
 
 
-
-## 5、邮件告警
-
-s7 经常被杀。只能做个脚本配合 serv00 的计划任务 每30分钟检查一次，如果 v2ray 被杀了 就启动。并且发送邮件告警。
-
-脚本 smail 中email 变量设置成自己的 email。
-
-记得给 smail 设置权限
-
-部署脚本中 email 改成自己的。
-
-
+## 排查问题是使用到的命令
 ```shell
-chmod u+x smail
+crontab -l    # 查看计划任务是否已经设置成功
+
+kill `sockstat -l|sed "/USER/d"|awk '{print $3}'` 2> /dev/null   # 杀死进程
+
+nohup ~/.hysteria2/hysteria server -c ~/.hysteria2/config.yaml & disown %1   # 手动启动服务
+
+DOMAIN=$(devil www list | sed -e '/Domain/d' -e '/^$/d'|awk -F"." '{ if ($2=="serv00") print $0 }'|awk '{print $1}') # 设置域名
+
+cat .hysteria2/url.txt | mail -s "$DOMAIN server sub" <email>  # 将订阅信息发送到email。
 ```
-
- 设置30分钟执行一次。只有失败才会发送email。
-
-![image-20240803225125455](./.readme.assets/image-20240803225125455.png)
-
-> [!tip]
->
-> s7 这台服务器太卡了。

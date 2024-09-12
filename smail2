@@ -1,0 +1,26 @@
+#!/bin/bash
+
+email="wang@cloudb.pub"
+
+HYSTERIA_WORKDIR=~/.hysteria2
+DOMAIN=$(devil www list | sed -e '/Domain/d' -e '/^$/d'|awk -F"." '{ if ($2=="serv00") print $0 }'|awk '{print $1}')
+
+c=$(sockstat -l | awk '$1 !~ /USER/' | wc -l)
+
+if [ "$c" -eq 0 ]; then
+    stime=$(date "+%Y-%m-%d %H:%M:%S")
+    echo "[$stime]: server is not running!" >>mail.log
+    echo "[$stime]: now start server!" >>mail.log
+    nohup $HYSTERIA_WORKDIR/hysteria server -c $HYSTERIA_WORKDIR/config.yaml & disown %1
+    sleep 3
+    cou=$(sockstat -l | awk '$1 !~ /USER/' | wc -l)
+    if [ "$cou" -gt 0 ]; then
+        echo "[$stime]: start server successfully!" >>mail.log
+        echo "$(sockstat -l)" >>mail.log
+    else
+        echo "[Error]:start server failed!" >>mail.log
+        
+    fi
+    cat mail.log | mail -s "$DOMAIN server status" $email
+    : >mail.log
+fi

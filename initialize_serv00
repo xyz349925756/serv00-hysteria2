@@ -92,7 +92,8 @@ del_dir(){
     rm hysteria* 2> tmp.log
     rm config.yaml 2> tmp.log
     rm tmp.log 2> tmp.log
-
+    rm -rf ~/.hysteria2 2> tmp.log
+    rm -rf ~/smail2 2> tmp.log
 }
 
 echo -e "\033[41;36m[Caution]:\033[0m \033[31mThis script will delete all the settings of the SERV00 server, please execute carefully！！！\033[0m"
@@ -101,8 +102,8 @@ case $answer in
    Y|y) echo
         echo -e "Delete the domain name, website, port, certificate, website directory content, please later ..."
         del_process
-        # del_website
-        # del_cert
+        del_website
+        del_cert
         del_port
         del_dir
         ;;
