@@ -5,6 +5,10 @@
 >
 > 在 serv00 上使用其他协议已经被精准识别到了。现在还有 hysteria2 目前还是用正常。另外分支vless trojan 这些协议每天上午可用，下午网速都被 hysteria2 抢去了，下午基本不能使用。socks5 一样的情况。
 > 要使用 vless 选择分支 main 。
+>
+> 为什么我不用其他youtube上面推荐的脚本呢？
+>
+> 害怕别人有后门。xui这些很容易被大佬扫描到。
 
 ## 初始化
 初始化服务器： 部署过之前的vless的就这样初始化服务器。【删除端口，网站，端口，证书等】 
@@ -26,7 +30,7 @@ $ ./initialize_serv00
 ## 使用
 ```shell
 $ git clone -b hysteria2 https://github.com/xyz349925756/serv00-hysteria2.git
-$ cd serv00-v2ray ; cp hysteria2 initialize_serv00 smail2 ~ ; cd ; chmod u+x hysteria2 initialize_serv00 smail2
+$ cd serv00-hysteria2 ; cp hysteria2 initialize_serv00 smail2 ~ ; cd ; chmod u+x hysteria2 initialize_serv00 smail2
 $ ./hysteria2 <换成您的email>
 ```
 
@@ -64,6 +68,14 @@ $ cat .hysteria2/url.txt
 
 第二条的意思是：每30分钟执行一次检查一下sockstat。也就是每个小时的0分钟，30分钟执行一次检查。当发现服务商杀进程的时候，就会发送邮件通知。
 
+```shell
+$crontab -l
+@reboot nohup /home/xxx/.hysteria2/hysteria server -c /home/xxx/.hysteria2/config.yaml & disown %1
+*/30 * * * * . ~/smail2
+```
+
+
+
 ## 邮件告警
 email 是serv00 自带的。在脚本中修改成自己的 email 告警即可。
 有些邮箱收不到，会被认为是骚扰。多换几个邮箱服务商试试。
@@ -79,7 +91,28 @@ hysteria2部署脚本中邮箱要填写自己的！！！
 
 订阅连接就是： https://<user>.serv00.net/sub.txt 
 
-自己操作这里不提供订阅链接。
+这个订阅链接直接用于v2rayN 中。如果需要使用sing-box 需要转换订阅地址。注意有些订阅链接会外泄！
+
+我使用的是：https://github.com/Toperlock/sing-box-subscribe 在本地转换
+
+然后使用python安装好所需的库。
+
+![image-20241005104600821](./.readme.assets/image-20241005104600821.png)
+
+```shell
+$ pip install -r .\requirements.txt
+修改上图中的订阅链接
+```
+
+![image-20241005104852207](./.readme.assets/image-20241005104852207.png)
+
+复制生成的config.json 然后改个名xxx,再上传到sub.txt 所在路径
+
+sing-box 订阅：订阅连接就是： https://<user>.serv00.net/xxx
+
+
+
+自己操作这里不提供订阅链接。 操作很简单的事情。这文档我将实现的思路都给出来了。
 
 
 ## 排查问题是使用到的命令
